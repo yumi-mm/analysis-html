@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebApp 充值数据分析</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f5f5f5; color: #1a1a1a; }
+  .page { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+  .page-title { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+  .page-subtitle { font-size: 13px; color: #888; margin-bottom: 32px; }
+
+  .section { background: #fff; border-radius: 10px; padding: 28px; margin-bottom: 28px; }
+  .section-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0; }
+  .sub-title { font-size: 14px; font-weight: 600; margin: 20px 0 6px; color: #333; }
+  .caption { font-size: 12px; color: #999; margin-bottom: 10px; }
+
+  /* KPI */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .kpi-card { background: #fafafa; border: 1px solid #eee; border-radius: 8px; padding: 16px 20px; }
+  .kpi-value { font-size: 26px; font-weight: 700; color: #1a1a1a; }
+  .kpi-value.warn { color: #d97706; }
+  .kpi-label { font-size: 12px; color: #888; margin-top: 4px; }
+
+  /* 双列布局 */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .grid-2-narrow { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* 图表容器 */
+  .chart { width: 100%; }
+
+  /* 表格 */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+  th { background: #f7f7f7; text-align: left; padding: 8px 12px; font-weight: 600; color: #555; border-bottom: 1px solid #e5e5e5; }
+  th.r { text-align: center; }
+  td.r { text-align: center; }
+  td { padding: 7px 12px; border-bottom: 1px solid #f0f0f0; color: #333; }
+  tr:nth-child(even) td { background: #fafafa; }
+
+  /* Callout */
+  .callout { border-radius: 6px; padding: 12px 16px; margin-top: 14px; font-size: 13px; line-height: 1.6; }
+  .callout-warn, .callout-info, .callout-neutral { background: #fffbeb; border-left: 3px solid #f59e0b; }
+  .callout-title { font-weight: 700; margin-bottom: 3px; }
+
+  /* 分隔 */
+  hr { border: none; border-top: 1px solid #e5e5e5; margin: 28px 0; }
+
+  @media (max-width: 700px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .grid-2, .grid-2-narrow { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="page-title">WebApp 充值数据分析</div>
+  <div class="page-subtitle">数据日期：2026-05（全月趋势）· 2026-06-01 注册用户（首充行为）· 库内时区</div>
+
+  <!-- ══════════════════════════════════════
+       一、首充分析
+  ══════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">一、首充分析（6/1 注册用户）</div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-value">93,656</div><div class="kpi-label">6/1 新注册用户</div></div>
+      <div class="kpi-card"><div class="kpi-value">617</div><div class="kpi-label">7日内首充用户</div></div>
+      <div class="kpi-card"><div class="kpi-value warn">0.66%</div><div class="kpi-label">7日首充转化率</div></div>
+      <div class="kpi-card"><div class="kpi-value">$3.52</div><div class="kpi-label">首充平均客单（美元）</div></div>
+    </div>
+
+    <div class="sub-title">1. 首充时机</div>
+    <div class="grid-2">
+      <div>
+        <div class="caption">注册后 7 天内首充分布（人数）</div>
+        <div id="chart-days" class="chart" style="height:200px"></div>
+      </div>
+      <div>
+        <div class="caption">注册当天（24h 内）首充时段</div>
+        <div id="chart-hours" class="chart" style="height:200px"></div>
+      </div>
+    </div>
+    <div class="callout callout-warn">
+      <div class="callout-title">注册即付</div>
+      79.3%（489/617）首充发生在注册当天；当天首充中 71.5%（441人）在注册后 1 小时内完成，黄金转化窗口极短。
+    </div>
+
+    <div class="sub-title">2. 首充金额分布</div>
+    <div class="caption">各金额区间首充用户数</div>
+    <div id="chart-price" class="chart" style="height:200px"></div>
+    <table>
+      <thead><tr><th>金额区间</th><th class="r">用户数</th><th class="r">均价（$）</th><th class="r">合计（$）</th></tr></thead>
+      <tbody>
+        <tr><td>≤$1</td><td class="r">274</td><td class="r">$0.88</td><td class="r">$241.12</td></tr>
+        <tr><td>$1–3</td><td class="r">209</td><td class="r">$2.60</td><td class="r">$542.47</td></tr>
+        <tr><td>$3–5</td><td class="r">54</td><td class="r">$3.56</td><td class="r">$192.15</td></tr>
+        <tr><td>$5–10</td><td class="r">41</td><td class="r">$8.68</td><td class="r">$355.77</td></tr>
+        <tr><td>$10–30</td><td class="r">34</td><td class="r">$16.30</td><td class="r">$554.34</td></tr>
+        <tr><td>$30–50</td><td class="r">3</td><td class="r">$35.50</td><td class="r">$106.50</td></tr>
+        <tr><td>>$50</td><td class="r">2</td><td class="r">$88.43</td><td class="r">$176.85</td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-neutral">
+      <div class="callout-title">低客单为主</div>
+      ≤$1（274人，44%）与 $1–3（209人，34%）合计 78%；$10+ 仅 39 人却贡献 $837（38.6%），高端用户价值突出。
+    </div>
+
+    <div class="sub-title">3. 首充入口场景分布</div>
+    <div class="caption">共 288 位首充用户能关联到场景 · 来源：log_id 406</div>
+    <div class="grid-2-narrow">
+      <div>
+        <div class="caption">场景用户数占比</div>
+        <div id="chart-firstpay-pie" class="chart" style="height:260px"></div>
+      </div>
+      <div>
+        <div class="caption">各场景首充 ARPPU（美元）</div>
+        <div id="chart-firstpay-arppu" class="chart" style="height:260px"></div>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>来源场景</th><th class="r">用户数</th><th class="r">总充值金额（$）</th><th class="r">ARPPU（$）</th><th class="r">金额占比</th></tr></thead>
+      <tbody>
+        <tr><td>个人页</td><td class="r">169</td><td class="r">$730.91</td><td class="r">$4.32</td><td class="r">63.61%</td></tr>
+        <tr><td>约聊余额不足</td><td class="r">90</td><td class="r">$323.05</td><td class="r">$3.59</td><td class="r">28.11%</td></tr>
+        <tr><td>升级单弹窗</td><td class="r">14</td><td class="r">$23.94</td><td class="r">$1.71</td><td class="r">2.08%</td></tr>
+        <tr><td>等级页</td><td class="r">8</td><td class="r">$13.64</td><td class="r">$1.71</td><td class="r">1.18%</td></tr>
+        <tr><td>礼物橱窗</td><td class="r">5</td><td class="r">$55.74</td><td class="r">$11.15</td><td class="r">4.85%</td></tr>
+        <tr><td>游戏</td><td class="r">1</td><td class="r">$0.88</td><td class="r">$0.88</td><td class="r">0.07%</td></tr>
+        <tr><td>直播间浮层</td><td class="r">1</td><td class="r">$0.88</td><td class="r">$0.88</td><td class="r">0.07%</td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-info">
+      <div class="callout-title">关键发现</div>
+      个人页（169人，63.6%）与约聊余额不足（90人，28.1%）合计覆盖 92% 首充金额。礼物橱窗仅 5 人却贡献 $55.74（ARPPU $11.15，首充场景最高），是高质量精准触达场景。
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       二、24小时充值趋势
+  ══════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">二、24 小时充值趋势（2026-05 全月）</div>
+    <div class="caption">高峰期：0–5 点（UTC+8）· 低谷期：8–10 点 · 充值金额单位：万美元</div>
+
+    <div class="sub-title">1. 充值金额 &amp; 付费用户数（按小时）</div>
+    <div id="chart-hourly" class="chart" style="height:260px"></div>
+
+    <div class="sub-title">2. ARPPU 趋势（美元）</div>
+    <div id="chart-arppu" class="chart" style="height:180px"></div>
+
+    <div class="callout callout-info">
+      <div class="callout-title">峰谷特征</div>
+      凌晨 1–3 点为绝对高峰（2点 $10.6万，1点 $8.9万）；午间 8–10 点为最低谷（不足 $2.9万）。高峰期 ARPPU（$11.6–12.9）高于白天（$9.7–10.4），深夜付费用户客单价更高。
+    </div>
+
+    <div class="sub-title">3. 高峰 vs 低谷期：分国家 ARPPU 与用户占比</div>
+    <div class="caption">高峰期：0–5 点；低谷期：8–10 点 · 来源：log_id 91 + dim_user_f_d</div>
+    <div class="grid-2-narrow">
+      <div>
+        <div class="caption">ARPPU 对比（美元）</div>
+        <div id="chart-country-arppu" class="chart" style="height:320px"></div>
+      </div>
+      <div>
+        <div class="caption">用户占比变化（高峰 → 低谷）</div>
+        <table>
+          <thead><tr><th>国家</th><th class="r">高峰占比</th><th class="r">低谷占比</th><th class="r">变动</th></tr></thead>
+          <tbody>
+            <tr><td>英国</td><td class="r">0.92%</td><td class="r">2.14%</td><td class="r">+1.22%</td></tr>
+            <tr><td>美国</td><td class="r">2.51%</td><td class="r">4.94%</td><td class="r">+2.43%</td></tr>
+            <tr><td>加拿大</td><td class="r">0.78%</td><td class="r">1.54%</td><td class="r">+0.76%</td></tr>
+            <tr><td>阿联酋</td><td class="r">1.49%</td><td class="r">1.89%</td><td class="r">+0.40%</td></tr>
+            <tr><td>卡塔尔</td><td class="r">0.70%</td><td class="r">0.83%</td><td class="r">+0.13%</td></tr>
+            <tr><td>沙特</td><td class="r">1.02%</td><td class="r">1.96%</td><td class="r">+0.94%</td></tr>
+            <tr><td>巴基斯坦</td><td class="r">0.93%</td><td class="r">1.52%</td><td class="r">+0.59%</td></tr>
+            <tr><td>土耳其</td><td class="r">0.70%</td><td class="r">1.17%</td><td class="r">+0.47%</td></tr>
+            <tr style="background:#eff6ff"><td>印度</td><td class="r">80.93%</td><td class="r">69.93%</td><td class="r">-11.00%</td></tr>
+            <tr><td>孟加拉国</td><td class="r">1.29%</td><td class="r">0.87%</td><td class="r">-0.42%</td></tr>
+            <tr><td>印尼</td><td class="r">1.09%</td><td class="r">1.52%</td><td class="r">+0.43%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="callout callout-info">
+      <div class="callout-title">关键发现</div>
+      印度用户占绝对主导（高峰 80.9%，低谷 69.9%），但 ARPPU 最低（$18/$10.9）。英美加等西方市场高峰期 ARPPU 远高于低谷（英国 $60 vs $45），且低谷期占比上升（美国 +2.4%），说明高 ARPPU 国家在白天更活跃。
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       三、充值场景分布（全用户）
+  ══════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">三、充值场景分布（全用户·2026-05）</div>
+    <div class="caption">来源：log_id 406 step=4 · 金额单位：美元</div>
+
+    <div class="grid-2-narrow">
+      <div>
+        <div class="sub-title">1. 各场景充值金额占比</div>
+        <div id="chart-scene-pie" class="chart" style="height:280px"></div>
+      </div>
+      <div>
+        <div class="sub-title">2. 各场景 ARPPU（美元）</div>
+        <div id="chart-scene-arppu" class="chart" style="height:280px"></div>
+      </div>
+    </div>
+
+    <div class="sub-title">3. 全场景明细汇总</div>
+    <table>
+      <thead><tr><th>充值来源</th><th class="r">用户数</th><th class="r">订单数</th><th class="r">总充值金额（$）</th><th class="r">ARPPU（$）</th><th class="r">金额占比</th></tr></thead>
+      <tbody>
+        <tr><td>个人页</td><td class="r">14,408</td><td class="r">38,826</td><td class="r">317,392.69</td><td class="r">$22.03</td><td class="r">66.31%</td></tr>
+        <tr><td>约聊余额不足</td><td class="r">5,451</td><td class="r">12,073</td><td class="r">94,751.31</td><td class="r">$17.38</td><td class="r">19.80%</td></tr>
+        <tr><td>礼物橱窗</td><td class="r">887</td><td class="r">2,290</td><td class="r">33,255.99</td><td class="r">$37.49</td><td class="r">6.95%</td></tr>
+        <tr><td>直播间浮层</td><td class="r">427</td><td class="r">945</td><td class="r">11,507.95</td><td class="r">$26.95</td><td class="r">2.40%</td></tr>
+        <tr><td>等级页</td><td class="r">511</td><td class="r">843</td><td class="r">10,154.07</td><td class="r">$19.87</td><td class="r">2.12%</td></tr>
+        <tr><td>游戏</td><td class="r">146</td><td class="r">509</td><td class="r">6,652.37</td><td class="r">$45.56</td><td class="r">1.39%</td></tr>
+        <tr><td>升级弹框</td><td class="r">793</td><td class="r">909</td><td class="r">4,081.01</td><td class="r">$5.15</td><td class="r">0.85%</td></tr>
+        <tr><td>交友房浮层</td><td class="r">37</td><td class="r">67</td><td class="r">835.72</td><td class="r">$22.59</td><td class="r">0.17%</td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-info">
+      <div class="callout-title">关键发现</div>
+      个人页是最大充值入口（66.3% 金额，14,408 人）；礼物橱窗与游戏场景人少但 ARPPU 极高（$37–$46），是高价值精准场景；升级弹框用户多（793人）但人均仅 $5.15，转化效率最低。
+    </div>
+  </div>
+
+</div>
+
+<script>
+const colors = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#84cc16'];
+
+// ── 首充时机：7天分布
+echarts.init(document.getElementById('chart-days')).setOption({
+  tooltip: { trigger: 'axis' },
+  grid: { left: 55, right: 20, top: 30, bottom: 36 },
+  xAxis: { type: 'category', data: ['0–1天','1–3天','3–5天','5–7天'], axisLabel: { interval: 0 } },
+  yAxis: { type: 'value', name: '人数', nameGap: 8 },
+  series: [{ type: 'bar', data: [489,57,18,7], itemStyle: { color: '#3b82f6' }, label: { show: true, position: 'top', fontSize: 12 }, barMaxWidth: 60 }]
+});
+
+// ── 首充时机：当天时段
+echarts.init(document.getElementById('chart-hours')).setOption({
+  tooltip: { trigger: 'axis' },
+  grid: { left: 55, right: 20, top: 30, bottom: 36 },
+  xAxis: { type: 'category', data: ['0–1h','1–3h','3–5h','5–7h','7–12h','12–24h'], axisLabel: { interval: 0 } },
+  yAxis: { type: 'value', name: '人数', nameGap: 8 },
+  series: [{ type: 'bar', data: [441,46,8,5,8,27], itemStyle: { color: '#10b981' }, label: { show: true, position: 'top', fontSize: 12 }, barMaxWidth: 60 }]
+});
+
+// ── 首充金额分布
+echarts.init(document.getElementById('chart-price')).setOption({
+  tooltip: { trigger: 'axis' },
+  grid: { left: 55, right: 20, top: 30, bottom: 36 },
+  xAxis: { type: 'category', data: ['≤$1','$1–3','$3–5','$5–10','$10–30','$30–50','>$50'], axisLabel: { interval: 0 } },
+  yAxis: { type: 'value', name: '用户数', nameGap: 8 },
+  series: [{ type: 'bar', data: [274,209,54,41,34,3,2], itemStyle: { color: '#8b5cf6' }, label: { show: true, position: 'top', fontSize: 12 }, barMaxWidth: 60 }]
+});
+
+// ── 首充场景饼图
+echarts.init(document.getElementById('chart-firstpay-pie')).setOption({
+  tooltip: { trigger: 'item', formatter: '{b}: {c}人 ({d}%)' },
+  legend: { orient: 'vertical', right: 0, top: 'center', textStyle: { fontSize: 12 } },
+  series: [{
+    type: 'pie', radius: ['35%','65%'], center: ['38%','50%'],
+    data: [
+      { name:'个人页', value:169 }, { name:'约聊余额不足', value:90 },
+      { name:'升级单弹窗', value:14 }, { name:'等级页', value:8 },
+      { name:'礼物橱窗', value:5 }, { name:'游戏', value:1 }, { name:'直播间浮层', value:1 }
+    ],
+    label: { show: false },
+    color: colors
+  }]
+});
+
+// ── 首充场景 ARPPU 横向柱图
+echarts.init(document.getElementById('chart-firstpay-arppu')).setOption({
+  tooltip: { trigger: 'axis', valueFormatter: v => '$' + v },
+  grid: { left: 90, right: 70, top: 10, bottom: 30 },
+  xAxis: { type: 'value', name: 'ARPPU ($)', nameLocation: 'end' },
+  yAxis: { type: 'category', data: ['直播间浮层','游戏','礼物橱窗','等级页','升级单弹窗','约聊余额不足','个人页'] },
+  series: [{ type: 'bar', data: [0.88,0.88,11.15,1.71,1.71,3.59,4.32], itemStyle: { color: '#f59e0b' }, label: { show: true, position: 'right', formatter: v => '$'+v.value } }]
+});
+
+// ── 24小时充值金额+用户数
+echarts.init(document.getElementById('chart-hourly')).setOption({
+  tooltip: { trigger: 'axis' },
+  legend: { top: 4, left: 'center' },
+  grid: { left: 70, right: 80, top: 40, bottom: 44 },
+  xAxis: { type: 'category', data: ['0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23'], name: '时（UTC+8）', nameLocation: 'end', nameGap: 6 },
+  yAxis: [
+    { type: 'value', name: '充值金额（万$）', nameLocation: 'end', nameGap: 8, position: 'left' },
+    { type: 'value', name: '付费用户数（百人）', nameLocation: 'end', nameGap: 8, position: 'right' }
+  ],
+  series: [
+    { name: '充值金额（万美元）', type: 'line', smooth: true, areaStyle: { opacity: 0.15 }, data: [5.88,8.90,10.57,9.20,7.74,5.70,4.44,3.15,2.65,2.59,2.89,3.39,3.62,4.20,4.65,4.59,4.92,5.00,5.13,4.76,4.26,3.79,3.79,4.50], itemStyle: { color: '#3b82f6' } },
+    { name: '付费用户数（百人）', type: 'line', smooth: true, yAxisIndex: 1, data: [47,69,83,79,60,45,31,24,21,23,28,31,37,42,46,46,47,51,53,46,40,36,35,37], itemStyle: { color: '#10b981' } }
+  ]
+});
+
+// ── ARPPU趋势
+echarts.init(document.getElementById('chart-arppu')).setOption({
+  tooltip: { trigger: 'axis', valueFormatter: v => '$' + v },
+  grid: { left: 60, right: 30, top: 24, bottom: 44 },
+  xAxis: { type: 'category', data: ['0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23'], name: '时（UTC+8）', nameLocation: 'end', nameGap: 6 },
+  yAxis: { type: 'value', name: 'ARPPU ($)', nameLocation: 'end', nameGap: 8, min: 8, max: 16 },
+  series: [
+    {
+      name: 'ARPPU（美元）', type: 'line', smooth: true,
+      data: [12.6,12.87,12.72,11.59,12.88,12.73,14.23,13.19,12.42,11.33,10.44,10.81,9.75,9.93,10.06,9.93,10.39,9.74,9.74,10.27,10.59,10.63,10.89,12.05],
+      itemStyle: { color: '#8b5cf6' },
+      markLine: {
+        silent: true,
+        symbol: 'none',
+        lineStyle: { type: 'dashed', color: '#aaa' },
+        label: { formatter: '月均≈$11', position: 'insideStartTop' },
+        data: [{ yAxis: 11 }]
+      }
+    }
+  ]
+});
+
+// ── 国家 ARPPU 对比
+echarts.init(document.getElementById('chart-country-arppu')).setOption({
+  tooltip: { trigger: 'axis', valueFormatter: v => '$' + v },
+  legend: { top: 4, left: 'center' },
+  grid: { left: 80, right: 80, top: 40, bottom: 30 },
+  xAxis: { type: 'value', name: 'ARPPU ($)' },
+  yAxis: { type: 'category', data: ['印尼','孟加拉国','印度','土耳其','巴基斯坦','沙特','卡塔尔','阿联酋','加拿大','美国','英国'] },
+  series: [
+    { name: '高峰期', type: 'bar', data: [11.13,16.24,18.03,23.50,23.80,27.01,30.56,41.20,47.12,55.73,59.96], itemStyle: { color: '#3b82f6' } },
+    { name: '低谷期', type: 'bar', data: [7.39,14.28,10.88,16.32,11.85,19.18,26.87,21.35,25.78,31.33,44.64], itemStyle: { color: '#93c5fd' } }
+  ]
+});
+
+// ── 充值场景饼图
+echarts.init(document.getElementById('chart-scene-pie')).setOption({
+  tooltip: { trigger: 'item', formatter: '{b}: {d}%' },
+  legend: { orient: 'vertical', right: 0, top: 'center', textStyle: { fontSize: 12 } },
+  series: [{
+    type: 'pie', radius: ['35%','65%'], center: ['38%','50%'],
+    data: [
+      { name:'个人页', value:317392.69 }, { name:'约聊余额不足', value:94751.31 },
+      { name:'礼物橱窗', value:33255.99 }, { name:'直播间浮层', value:11507.95 },
+      { name:'等级页', value:10154.07 }, { name:'游戏', value:6652.37 },
+      { name:'升级弹框', value:4081.01 }, { name:'交友房浮层', value:835.72 }
+    ],
+    label: { show: false },
+    color: colors
+  }]
+});
+
+// ── 充值场景 ARPPU
+echarts.init(document.getElementById('chart-scene-arppu')).setOption({
+  tooltip: { trigger: 'axis', valueFormatter: v => '$' + v },
+  grid: { left: 90, right: 80, top: 10, bottom: 30 },
+  xAxis: { type: 'value', name: 'ARPPU ($)', nameLocation: 'end' },
+  yAxis: { type: 'category', data: ['交友房浮层','升级弹框','约聊余额不足','等级页','个人页','直播间浮层','礼物橱窗','游戏'] },
+  series: [{ type: 'bar', data: [22.59,5.15,17.38,19.87,22.03,26.95,37.49,45.56], itemStyle: { color: '#10b981' }, label: { show: true, position: 'right', formatter: v => '$'+v.value } }]
+});
+
+// 响应窗口大小变化
+window.addEventListener('resize', () => {
+  document.querySelectorAll('[id^="chart-"]').forEach(el => {
+    echarts.getInstanceByDom(el)?.resize();
+  });
+});
+</script>
+</body>
+</html>
