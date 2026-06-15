@@ -226,6 +226,34 @@
     </div>
   </div>
 
+  <!-- ══════════════════════════════════════
+       四、优化建议：订阅模式
+  ══════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">四、优化建议：订阅模式</div>
+    <div class="caption">经 App 验证，订阅用户留存及活跃时长普遍更高；目前 WebApp 无订阅入口，建议将订阅模式引入 WebApp</div>
+
+    <div class="sub-title">1. 订阅 vs 普通付费 60 日留存对比（App 数据验证）</div>
+    <div class="caption">订阅 $10 留存 vs 谷歌 $10 留存 · 数据来源：App 端历史数据</div>
+    <div id="chart-retention" class="chart" style="height:300px"></div>
+
+    <div class="sub-title">2. 核心数据</div>
+    <table>
+      <thead><tr><th>留存节点</th><th class="r">订阅 $10</th><th class="r">谷歌 $10</th><th class="r">订阅优势</th></tr></thead>
+      <tbody>
+        <tr><td>第 1 日</td><td class="r">72.35%</td><td class="r">65.47%</td><td class="r">+6.88%</td></tr>
+        <tr><td>第 7 日</td><td class="r">56.19%</td><td class="r">49.03%</td><td class="r">+7.16%</td></tr>
+        <tr><td>第 30 日</td><td class="r">51.47%</td><td class="r">44.35%</td><td class="r">+7.12%</td></tr>
+        <tr><td>第 60 日</td><td class="r">41.79%</td><td class="r">36.95%</td><td class="r">+4.84%</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-warn">
+      <div class="callout-title">建议</div>
+      订阅用户在各节点留存率均高于普通付费用户 4–7 个百分点，60 日留存差距仍维持在 4.84%。WebApp 当前无订阅入口，可参考 App 端订阅方案，在充值页或个人页新增订阅套餐入口，利用 WebApp 用户基数提升长期留存与 LTV。
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -358,6 +386,35 @@ echarts.init(document.getElementById('chart-scene-arppu')).setOption({
   xAxis: { type: 'value', name: 'ARPPU ($)', nameLocation: 'end' },
   yAxis: { type: 'category', data: ['交友房浮层','升级弹框','约聊余额不足','等级页','个人页','直播间浮层','礼物橱窗','游戏'] },
   series: [{ type: 'bar', data: [22.59,5.15,17.38,19.87,22.03,26.95,37.49,45.56], itemStyle: { color: '#10b981' }, label: { show: true, position: 'right', formatter: v => '$'+v.value } }]
+});
+
+// ── 订阅留存对比
+echarts.init(document.getElementById('chart-retention')).setOption({
+  tooltip: { trigger: 'axis', valueFormatter: v => v + '%' },
+  legend: { top: 4, left: 'center' },
+  grid: { left: 60, right: 30, top: 40, bottom: 44 },
+  xAxis: {
+    type: 'category',
+    data: ['1日','3日','7日','15日','20日','25日','30日','35日','40日','45日','50日','55日','60日'],
+    name: '留存天数', nameLocation: 'end', nameGap: 6
+  },
+  yAxis: { type: 'value', name: '留存率', nameLocation: 'end', nameGap: 8, min: 30, max: 80, axisLabel: { formatter: v => v + '%' } },
+  series: [
+    {
+      name: '订阅$10留存', type: 'line', smooth: true,
+      data: [72.35, null, 56.19, null, 50.41, null, 51.47, null, 47.44, null, 44.73, null, 41.79],
+      connectNulls: true,
+      itemStyle: { color: '#f59e0b' },
+      label: { show: true, formatter: p => p.value ? p.value + '%' : '', fontSize: 11, position: 'top' }
+    },
+    {
+      name: '谷歌$10留存', type: 'line', smooth: true,
+      data: [65.47, null, 49.03, 43.12, null, null, 44.35, null, 40.81, null, 39.31, null, 36.95],
+      connectNulls: true,
+      itemStyle: { color: '#3b82f6' },
+      label: { show: true, formatter: p => p.value ? p.value + '%' : '', fontSize: 11, position: 'bottom' }
+    }
+  ]
 });
 
 // 响应窗口大小变化
