@@ -242,8 +242,17 @@
       <thead><tr><th>留存节点</th><th class="r">订阅 $10</th><th class="r">谷歌 $10</th><th class="r">订阅优势</th></tr></thead>
       <tbody>
         <tr><td>第 1 日</td><td class="r">72.35%</td><td class="r">65.47%</td><td class="r">+6.88%</td></tr>
+        <tr><td>第 3 日</td><td class="r">61.19%</td><td class="r">54.11%</td><td class="r">+7.08%</td></tr>
         <tr><td>第 7 日</td><td class="r">56.19%</td><td class="r">49.03%</td><td class="r">+7.16%</td></tr>
+        <tr><td>第 15 日</td><td class="r">51.23%</td><td class="r">44.19%</td><td class="r">+7.04%</td></tr>
+        <tr><td>第 20 日</td><td class="r">50.41%</td><td class="r">43.12%</td><td class="r">+7.29%</td></tr>
+        <tr><td>第 25 日</td><td class="r">49.77%</td><td class="r">42.21%</td><td class="r">+7.56%</td></tr>
         <tr><td>第 30 日</td><td class="r">51.47%</td><td class="r">44.35%</td><td class="r">+7.12%</td></tr>
+        <tr><td>第 35 日</td><td class="r">49.89%</td><td class="r">43.20%</td><td class="r">+6.69%</td></tr>
+        <tr><td>第 40 日</td><td class="r">47.44%</td><td class="r">40.81%</td><td class="r">+6.63%</td></tr>
+        <tr><td>第 45 日</td><td class="r">46.24%</td><td class="r">40.15%</td><td class="r">+6.09%</td></tr>
+        <tr><td>第 50 日</td><td class="r">44.73%</td><td class="r">39.31%</td><td class="r">+5.42%</td></tr>
+        <tr><td>第 55 日</td><td class="r">42.88%</td><td class="r">37.53%</td><td class="r">+5.35%</td></tr>
         <tr><td>第 60 日</td><td class="r">41.79%</td><td class="r">36.95%</td><td class="r">+4.84%</td></tr>
       </tbody>
     </table>
@@ -389,30 +398,30 @@ echarts.init(document.getElementById('chart-scene-arppu')).setOption({
 });
 
 // ── 订阅留存对比
+const retentionDays = ['1日','3日','7日','15日','20日','25日','30日','35日','40日','45日','50日','55日','60日'];
+const keyDays = [0,2,4,6,8,10,12]; // 1日、7日、20日、30日、40日、50日、60日 显示标签
 echarts.init(document.getElementById('chart-retention')).setOption({
   tooltip: { trigger: 'axis', valueFormatter: v => v + '%' },
   legend: { top: 4, left: 'center' },
   grid: { left: 60, right: 30, top: 40, bottom: 44 },
   xAxis: {
     type: 'category',
-    data: ['1日','3日','7日','15日','20日','25日','30日','35日','40日','45日','50日','55日','60日'],
+    data: retentionDays,
     name: '留存天数', nameLocation: 'end', nameGap: 6
   },
   yAxis: { type: 'value', name: '留存率', nameLocation: 'end', nameGap: 8, min: 30, max: 80, axisLabel: { formatter: v => v + '%' } },
   series: [
     {
       name: '订阅$10留存', type: 'line', smooth: true,
-      data: [72.35, null, 56.19, null, 50.41, null, 51.47, null, 47.44, null, 44.73, null, 41.79],
-      connectNulls: true,
+      data: [72.35,61.19,56.19,51.23,50.41,49.77,51.47,49.89,47.44,46.24,44.73,42.88,41.79],
       itemStyle: { color: '#f59e0b' },
-      label: { show: true, formatter: p => p.value ? p.value + '%' : '', fontSize: 11, position: 'top' }
+      label: { show: true, formatter: p => keyDays.includes(p.dataIndex) ? p.value+'%' : '', fontSize: 11, position: 'top' }
     },
     {
       name: '谷歌$10留存', type: 'line', smooth: true,
-      data: [65.47, null, 49.03, 43.12, null, null, 44.35, null, 40.81, null, 39.31, null, 36.95],
-      connectNulls: true,
+      data: [65.47,54.11,49.03,44.19,43.12,42.21,44.35,43.20,40.81,40.15,39.31,37.53,36.95],
       itemStyle: { color: '#3b82f6' },
-      label: { show: true, formatter: p => p.value ? p.value + '%' : '', fontSize: 11, position: 'bottom' }
+      label: { show: true, formatter: p => keyDays.includes(p.dataIndex) ? p.value+'%' : '', fontSize: 11, position: 'bottom' }
     }
   ]
 });
