@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>主要场景充值订单量占比</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f5f5f5; color: #1a1a1a; }
+  .page { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+  .section { background: #fff; border-radius: 10px; padding: 20px 28px 28px; margin-bottom: 28px; }
+  .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; color: #1a1a1a; }
+  .chart-note { font-size: 12px; color: #666; line-height: 1.7; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0; }
+  .chart { width: 100%; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="section">
+    <div class="section-title">主要场景充值订单量占比</div>
+    <div id="chart" class="chart" style="height:520px"></div>
+    <div class="chart-note">说明：「视频聊期间充值不挂断」于 7/2 上线后，视频聊场景充值订单占比从 8.6% 升至 11.5%（7/2–7/4 连续 3 天突破 10%），直达充值页占比由 75.1% 降至 70.5%（下降约 5 个百分点），直播间占比基本稳定，更多充值行为被引导回视频聊核心场景。</div>
+  </div>
+</div>
+<script>
+const dates = ["06/15", "06/16", "06/17", "06/18", "06/19", "06/20", "06/21", "06/22", "06/23", "06/24", "06/25", "06/26", "06/27", "06/28", "06/29", "06/30", "07/01", "07/02", "07/03", "07/04"];
+const seriesData = [{"name": "充值页（直达）", "color": "#3b82f6", "data": [74.27, 75.57, 71.26, 74.55, 74.25, 73.15, 73.49, 70.37, 71.78, 74.15, 74.56, 74.51, 76.0, 73.72, 74.35, 73.1, 75.07, 70.35, 71.62, 70.51]}, {"name": "直播间", "color": "#f59e0b", "data": [11.98, 12.68, 12.37, 10.05, 10.53, 13.03, 10.69, 13.06, 12.2, 11.97, 11.94, 10.37, 10.0, 9.78, 9.73, 11.57, 10.23, 12.58, 10.93, 11.9]}, {"name": "视频聊", "color": "#10b981", "data": [8.27, 6.46, 9.06, 7.88, 9.51, 7.35, 7.38, 8.95, 7.43, 7.31, 7.59, 9.57, 8.27, 10.0, 9.73, 9.01, 8.6, 10.62, 11.23, 11.48]}];
+
+function shouldShowLabel(date) {
+  if (date >= '06/25') return true;
+  const [mm, dd] = date.split('/').map(Number);
+  if (mm !== 6 || dd < 15 || dd > 24) return false;
+  return (dd - 15) % 2 === 0;
+}
+
+const chart = echarts.init(document.getElementById('chart'));
+chart.setOption({
+  tooltip: {
+    trigger: 'axis',
+    formatter: params => {
+      let s = params[0].axisValue + '<br/>';
+      params.forEach(p => { s += p.marker + p.seriesName + '：' + p.value + '%<br/>'; });
+      return s;
+    }
+  },
+  legend: { top: 36, left: 'center', itemGap: 24 },
+  grid: { left: 56, right: 30, top: 72, bottom: 110 },
+  xAxis: {
+    type: 'category',
+    data: dates,
+    name: '日期',
+    nameLocation: 'end',
+    nameGap: 28,
+    axisLabel: { rotate: 45, fontSize: 11, margin: 14 }
+  },
+  yAxis: {
+    type: 'value',
+    name: '订单占比（%）',
+    nameGap: 12,
+    min: 0,
+    max: 85,
+    axisLabel: { formatter: v => v + '%' }
+  },
+  series: seriesData.map(s => ({
+    name: s.name,
+    type: 'line',
+    smooth: false,
+    symbol: 'circle',
+    symbolSize: 7,
+    itemStyle: { color: s.color },
+    lineStyle: { width: 2.5 },
+    data: s.data,
+    label: {
+      show: true,
+      position: s.name === '视频聊' ? 'bottom' : 'top',
+      formatter: p => shouldShowLabel(dates[p.dataIndex]) ? p.value + '%' : '',
+      fontSize: 9,
+      color: s.color,
+      distance: s.name === '视频聊' ? 8 : 4
+    },
+    emphasis: { focus: 'series' }
+  }))
+});
+
+window.addEventListener('resize', () => chart.resize());
+</script>
+</body>
+</html>
