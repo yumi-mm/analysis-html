@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebApp 优化方向 · 周会汇报</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+  :root {
+    --bg: #eef1f4;
+    --card: #fff;
+    --text: #111827;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --accent: #0f766e;
+    --accent-soft: #ccfbf1;
+    --blue: #1d4ed8;
+    --blue-soft: #dbeafe;
+    --amber: #b45309;
+    --amber-soft: #ffedd5;
+    --rose: #be123c;
+    --green: #047857;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+  }
+  .page { max-width: 1080px; margin: 0 auto; padding: 24px 18px 56px; }
+  .hero {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px 30px 24px;
+    margin-bottom: 16px;
+  }
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  h1 { font-size: 26px; font-weight: 750; margin-bottom: 10px; letter-spacing: -0.02em; }
+  .ask {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 14px 0 8px;
+  }
+  .ask span {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid #99f6e4;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 650;
+  }
+  .verdict { font-size: 15px; color: #374151; max-width: 960px; }
+  .verdict strong { color: var(--accent); }
+  .meta { margin-top: 12px; font-size: 12px; color: var(--muted); }
+
+  .issue-list {
+    display: grid;
+    gap: 12px;
+    margin-top: 4px;
+  }
+  .issue {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+    background: #f9fafb;
+  }
+  .issue .head {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .issue .no {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: var(--amber-soft);
+    color: var(--amber);
+    font-size: 12px;
+    font-weight: 750;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .issue .title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.45;
+  }
+  .issue .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 8px 34px;
+  }
+  .issue .tag-sm {
+    font-size: 11px;
+    font-weight: 650;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #fff;
+    border: 1px solid var(--line);
+    color: var(--muted);
+  }
+  .issue .tag-sm.pay { color: var(--amber); border-color: #fdba74; background: #fff7ed; }
+  .issue .tag-sm.call { color: var(--blue); border-color: #93c5fd; background: #eff6ff; }
+  .issue .tag-sm.ios { color: #7c3aed; border-color: #c4b5fd; background: #f5f3ff; }
+  .issue .tag-sm.focus {
+    color: #be123c;
+    border-color: #fecdd3;
+    background: #fff1f2;
+    margin-right: 6px;
+  }
+  .issue .shot {
+    margin: 10px 0 0 34px;
+    max-width: 160px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .issue .shot img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .shot-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 220px));
+    justify-content: start;
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .shot-row .shot {
+    margin: 0;
+    max-width: none;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .shot-row .shot img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 523 / 1024;
+    height: auto;
+    object-fit: cover;
+    object-position: center top;
+  }
+  .shot-row .cap {
+    font-size: 11px;
+    color: var(--muted);
+    padding: 6px 8px 8px;
+    line-height: 1.4;
+  }
+  .issue ul {
+    margin: 0 0 0 34px;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 6px;
+  }
+  .issue li {
+    font-size: 13px;
+    color: #374151;
+    padding-left: 12px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .issue li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #94a3b8;
+  }
+  .issue li strong { color: var(--text); font-weight: 650; }
+
+  .toc {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .toc a {
+    text-decoration: none;
+    color: inherit;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .toc a:hover { border-color: #99f6e4; }
+  .toc .n { font-size: 11px; color: var(--accent); font-weight: 700; margin-bottom: 4px; }
+  .toc .t { font-size: 13px; font-weight: 650; }
+
+  .section {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px 22px 18px;
+    margin-bottom: 14px;
+  }
+  .section-title {
+    font-size: 17px;
+    font-weight: 750;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .section-title .tag {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .section-desc { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+  .chart { width: 100%; height: 360px; }
+  .chart.short { height: 280px; }
+
+  .grid-2 { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 14px; }
+  .grid-2 > .section { margin-bottom: 0; }
+  .grid-wrap { margin-bottom: 14px; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th, td {
+    padding: 8px 9px;
+    border-bottom: 1px solid var(--line);
+    text-align: right;
+  }
+  th:first-child, td:first-child { text-align: left; }
+  th {
+    background: #f9fafb;
+    color: var(--muted);
+    font-weight: 650;
+    font-size: 12px;
+  }
+  tr.hl td { background: var(--accent-soft); font-weight: 650; }
+  tr.dim td { color: #9ca3af; }
+
+  .notes { margin-top: 12px; display: grid; gap: 8px; }
+  .note {
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #f9fafb;
+    border-left: 3px solid var(--accent);
+    color: #374151;
+  }
+  .note.warn { border-left-color: var(--amber); background: var(--amber-soft); }
+  .note.blue { border-left-color: var(--blue); background: var(--blue-soft); }
+  .note .stage {
+    font-weight: 750;
+    color: var(--accent);
+  }
+  .note strong {
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .compare .box {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px;
+    background: #f9fafb;
+  }
+  .compare .box h3 {
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 650;
+    margin-bottom: 8px;
+  }
+  .compare .big {
+    font-size: 22px;
+    font-weight: 750;
+    margin-bottom: 4px;
+  }
+  .compare .big.up { color: var(--green); }
+  .compare .big.down { color: var(--rose); }
+  .compare .hint { font-size: 12px; color: var(--muted); }
+
+  .rec-list { list-style: none; display: grid; gap: 10px; margin-top: 8px; }
+  .rec-list li {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+    background: #f9fafb;
+    font-size: 13.5px;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 750;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-right: 6px;
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .badge.risk { background: var(--amber-soft); color: var(--amber); }
+  .badge.next { background: var(--blue-soft); color: var(--blue); }
+
+  .metric-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .metric {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px;
+    background: #f9fafb;
+  }
+  .metric .k { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .metric .v { font-size: 20px; font-weight: 750; }
+  .metric .d { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .login-panel {
+    display: grid;
+    grid-template-columns: 1.4fr 0.9fr;
+    gap: 14px;
+    margin-top: 4px;
+  }
+  .login-funnel {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 18px 14px;
+    background: #f8fafc;
+  }
+  .login-funnel .ftitle {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    margin-bottom: 14px;
+    letter-spacing: 0.04em;
+  }
+  .funnel-row {
+    display: grid;
+    grid-template-columns: 88px 1fr 72px;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .funnel-row:last-child { margin-bottom: 0; }
+  .funnel-row .name {
+    font-size: 13px;
+    font-weight: 650;
+    color: #374151;
+  }
+  .funnel-bar-wrap {
+    height: 28px;
+    background: #f1f5f9;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+  .funnel-bar {
+    height: 100%;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+  }
+  .funnel-bar.b1 { width: 100%; background: #64748b; }
+  .funnel-bar.b2 { width: 81%; background: #0f766e; }
+  .funnel-bar.b3 { width: 100%; background: #64748b; }
+  .funnel-bar.b4 { width: 89%; background: #1d4ed8; }
+  .funnel-group-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    margin: 6px 0 10px;
+    letter-spacing: 0.04em;
+  }
+  .funnel-group-label:first-of-type { margin-top: 0; }
+  .funnel-row .val {
+    text-align: right;
+    font-size: 15px;
+    font-weight: 750;
+    color: var(--text);
+  }
+  .funnel-row .val small {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .login-highlights {
+    display: grid;
+    grid-template-rows: 1fr 1fr 1fr;
+    gap: 10px;
+  }
+  .hl-card {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .hl-card .k {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .hl-card .v {
+    font-size: 28px;
+    font-weight: 750;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+  .hl-card .d {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .hl-card.ok .v { color: var(--accent); }
+  .hl-card.ok { background: #f0fdfa; border-color: #99f6e4; }
+  .hl-card.info .v { color: var(--blue); }
+  .hl-card.info { background: #eff6ff; border-color: #bfdbfe; }
+  .hl-card.alert .v { color: var(--rose); }
+  .hl-card.alert { background: #fff1f2; border-color: #fecdd3; }
+
+  .footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  @media (max-width: 900px) {
+    .toc, .grid-2, .compare, .metric-row { grid-template-columns: 1fr 1fr; }
+    .login-panel { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    .toc, .grid-2, .compare, .metric-row, .login-highlights, .shot-row { grid-template-columns: 1fr; }
+    h1 { font-size: 22px; }
+  }
+  @media print {
+    body { background: #fff; }
+    .page { max-width: none; padding: 0; }
+    .section, .hero { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hero">
+    <div class="eyebrow">WEBAPP 周会汇报</div>
+    <h1>WebApp 优化方向</h1>
+    <div class="ask">
+      <span>建议①：视频聊放开 3 美金（先 A/B）</span>
+      <span>建议②：登录逻辑同步 App</span>
+    </div>
+    <p class="verdict">
+      视频聊期间几乎只能走 <strong>10 / 30 美金</strong>；挂断后立刻充以 <strong>1 / 3 美金</strong> 为主，
+      且约七成会再拨、约一半回拨同一人。App 历史已验证：砍低档会把小额续聊挤到挂断后。
+      <strong>建议聊中优先放开 3 美金，并用 A/B 验收续聊收益与 ARPPU。</strong>
+    </p>
+    <div class="meta">数据口径：WebApp 406 step=4 · 回拨=约聊 · App 对照 91 source∈{2,3,4,5,12} · 取消日 2024-04-03</div>
+  </div>
+
+  <nav class="toc">
+    <a href="#s1"><div class="n">01</div><div class="t">档位结构翻转</div></a>
+    <a href="#s2"><div class="n">02</div><div class="t">回拨率证据</div></a>
+    <a href="#s3"><div class="n">03</div><div class="t">App 历史对照</div></a>
+    <a href="#s4"><div class="n">04</div><div class="t">建议 & 登录</div></a>
+    <a href="#s7"><div class="n">05</div><div class="t">体验问题</div></a>
+  </nav>
+
+  <!-- 01 -->
+  <div class="section" id="s1">
+    <div class="section-title">一、视频聊期间 & 结束后充值结构 <span class="tag">问题发现</span></div>
+    <div class="section-desc">按场景看各档位订单占比——聊中没有低档入口</div>
+    <div id="tierChart" class="chart"></div>
+    <table style="margin-top:8px">
+      <thead>
+        <tr>
+          <th>场景</th>
+          <th>1美金</th>
+          <th>3美金</th>
+          <th>10美金</th>
+          <th>30美金</th>
+          <th>100美金</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>视频聊期间</td><td>0.80%</td><td>2.20%</td><td>78.30%</td><td>17.40%</td><td>1.30%</td></tr>
+        <tr><td>结束后 1 分钟</td><td>24.80%</td><td>43.90%</td><td>26.20%</td><td>4.70%</td><td>0.50%</td></tr>
+        <tr><td>结束后 3 分钟</td><td>23.30%</td><td>43.10%</td><td>27.20%</td><td>5.90%</td><td>0.43%</td></tr>
+        <tr><td>日常对照</td><td>25.56%</td><td>38.67%</td><td>26.63%</td><td>7.74%</td><td>1.28%</td></tr>
+      </tbody>
+    </table>
+    <div class="notes">
+      <div class="note"><span class="stage">聊中</span> 1&3 合计仅约 <strong>3%</strong>（可忽略）；10+30 合计约 <strong>95.7%</strong>。<span class="stage">挂断后</span> 1～3 分钟：1&3 跳至 <strong>66%～68.7%</strong>；10+30 从 95.7% 骤降至 <strong>31%～32%</strong>。</div>
+      <div class="note warn">对比日常非视频聊相关充值：挂断后 1～3 分钟内充值里，3 美金订单占比略高（约 43% vs 约 39%），说明这批用户对 3 美金的选择偏好比平时稍强一些。<br><strong>总结：聊中缺低档，会逼一部分「只想小额续聊」的人挂断再充，增加摩擦。</strong></div>
+    </div>
+  </div>
+
+  <!-- 02 -->
+  <div class="section" id="s2">
+    <div class="section-title">二、结束后充值回拨率 <span class="tag">核心论据</span></div>
+    <div class="section-desc">挂断后 1 分钟内充值 → 充值后 2 分钟内回拨约聊 / 同一人</div>
+    <div id="callbackChart" class="chart short"></div>
+    <table style="margin-top:8px">
+      <thead>
+        <tr><th>窗口</th><th>1美金</th><th>3美金</th><th>10美金</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1min 充 → 2min 回拨</td>
+          <td>67%</td><td>73%</td><td>76%</td>
+        </tr>
+        <tr>
+          <td>1min 充 → 2min 同人</td>
+          <td>40%</td><td>55%</td><td>54%</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="notes">
+      <div class="note blue">立刻充约 <strong>七成</strong>会再拨、约一半回拨同一人——更像「为续聊而充」；<strong>3 美金同人回拨 55%</strong>，接近 10 美金（54%），高于 1 美金（40%）。</div>
+      <div class="note warn"><strong>结论：</strong>优先放开聊中 3 美金入口，减少「挂断→充值→再拨」摩擦。</div>
+    </div>
+  </div>
+
+  <!-- 03 App -->
+  <div class="section" id="s3">
+    <div class="section-title">三、App 历史对照（2024-04-03 取消聊中 1/3） <span class="tag">旁证</span></div>
+    <div class="section-desc">客户端 91 埋点验证取消生效；对比取消前后约半月（聊中 vs 结束后 1 分钟）</div>
+    <div class="compare">
+      <div class="box">
+        <h3>视频聊期间</h3>
+        <div class="big down">订单 −54%</div>
+        <div class="hint">~18.2 万 → ~8.4 万</div>
+        <div class="big up" style="margin-top:10px">金额 +4.5%</div>
+        <div class="hint">~71.5 万 → ~74.8 万 USD · 客单抬升</div>
+      </div>
+      <div class="box">
+        <h3>结束后 1 分钟内</h3>
+        <div class="big up">订单 +34%</div>
+        <div class="hint">~7.1 万 → ~9.5 万</div>
+        <div class="big up" style="margin-top:10px">1&3 订单 +41%</div>
+        <div class="hint">~5.4 万 → ~7.7 万 · 低档外溢</div>
+      </div>
+    </div>
+    <div id="appChart" class="chart" style="height:300px;margin-top:8px"></div>
+    <div class="notes">
+      <div class="note warn"><strong>总结：</strong>取消前后视频聊相关金额并未下跌——聊中 71.5→74.8 万$，结束后 1 分钟 29.4→33.7 万$均略升；<br>但聊中订单腰斩、挂断后立刻充的 1/3 大幅上升，需求被挤到挂断后，增加「挂断→充值→再拨」摩擦。WebApp 现状与此同构。</div>
+    </div>
+  </div>
+
+  <!-- 04 建议：单独一排 -->
+  <div class="section" id="s4">
+    <div class="section-title">四、建议优化</div>
+    <ul class="rec-list">
+      <li>
+        <span class="badge">优先</span>
+        <strong>视频聊面板放开 3 美金</strong>：尤其余额不足 / 下一分钟不够，让用户小额续费直接接回，减少挂断再充摩擦。
+      </li>
+      <li>
+        <span class="badge">收起</span>
+        <strong>隐藏聊中极少被选的高档</strong>（300 / 1000 美金期间几乎无单），降低干扰。
+      </li>
+      <li>
+        <span class="badge risk">风险</span>
+        开放低档可能分流部分本会充 10 的用户（降档）。<strong>建议先 A/B</strong>，用续聊率与 ARPPU 双边验收。
+      </li>
+    </ul>
+    <div class="metric-row">
+      <div class="metric">
+        <div class="k">关注①</div>
+        <div class="v" style="font-size:15px">ARPPU / 总金额</div>
+        <div class="d">警惕 10→3 降档</div>
+      </div>
+      <div class="metric">
+        <div class="k">关注②</div>
+        <div class="v" style="font-size:15px">接回 / 续聊率</div>
+        <div class="d">核心收益指标</div>
+      </div>
+      <div class="metric">
+        <div class="k">关注③</div>
+        <div class="v" style="font-size:15px">人均通话时长</div>
+        <div class="d">是否整体拉长</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 登录：单独一排 -->
+  <div class="section" id="s5">
+    <div class="section-title">五、WebApp登录逻辑同步App</div>
+    <div class="section-desc">有密码可用密码登录；本设备注册账号可用手机号直接登录，无需验证码 · 近半年 WebApp 验证码数据</div>
+
+    <div class="login-panel">
+      <div class="login-funnel">
+        <div class="ftitle">验证码 / 登录漏斗</div>
+
+        <div class="funnel-group-label">验证码链路</div>
+        <div class="funnel-row">
+          <div class="name">发送次数</div>
+          <div class="funnel-bar-wrap">
+            <div class="funnel-bar b1">990,782</div>
+          </div>
+          <div class="val">99.1 万<small>基准 100%</small></div>
+        </div>
+        <div class="funnel-row">
+          <div class="name">实际使用</div>
+          <div class="funnel-bar-wrap">
+            <div class="funnel-bar b2">802,205</div>
+          </div>
+          <div class="val">80.2 万<small>使用率 81%</small></div>
+        </div>
+
+        <div class="funnel-group-label">用户链路</div>
+        <div class="funnel-row">
+          <div class="name">请求人数</div>
+          <div class="funnel-bar-wrap">
+            <div class="funnel-bar b3">655,231</div>
+          </div>
+          <div class="val">65.5 万<small>基准 100%</small></div>
+        </div>
+        <div class="funnel-row">
+          <div class="name">登录成功</div>
+          <div class="funnel-bar-wrap">
+            <div class="funnel-bar b4">582,224</div>
+          </div>
+          <div class="val">58.2 万<small>成功率 89%</small></div>
+        </div>
+      </div>
+
+      <div class="login-highlights">
+        <div class="hl-card ok">
+          <div class="k">验证码使用率</div>
+          <div class="v">81%</div>
+          <div class="d">按发送次数 · 约 2 成验证码浪费</div>
+        </div>
+        <div class="hl-card info">
+          <div class="k">登录成功率</div>
+          <div class="v">89%</div>
+          <div class="d">按请求用户 · 11% 未成功登录</div>
+        </div>
+        <div class="hl-card alert">
+          <div class="k">日均验证码登录失败</div>
+          <div class="v">~405 人</div>
+          <div class="d">近半年估算 · 优化可减流失</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="notes">
+      <div class="note">优化后一方面可减少用户流失，另一方面可减少验证码使用、节约成本。</div>
+      <div class="note blue"><span class="badge next">建议</span>登录逻辑对齐 App：密码登录 + 本机注册免验码直登。</div>
+    </div>
+  </div>
+
+  <div class="section" id="s7">
+    <div class="section-title">六、体验问题</div>
+    <div class="issue-list">
+      <div class="issue">
+        <div class="head">
+          <div class="no">1</div>
+          <div class="title"><span class="tag-sm focus">✳重点</span>非无痕模式设备注册账号丢失问题，同一个设备注册的新老账号信息已经全部提供给了开发，目前数美在跟进排查。</div>
+        </div>
+      </div>
+      <div class="issue">
+        <div class="head">
+          <div class="no">2</div>
+          <div class="title"><span class="tag-sm focus">✳重点</span>谷歌浏览器未登录状态下，WebApp通过谷歌方式注册/登录第一次报错400，已找到竞品成功案例（liveme）同步给了云鹏。</div>
+        </div>
+      </div>
+      <div class="issue">
+        <div class="head">
+          <div class="no">3</div>
+          <div class="title">竞品体验：Tumile将WebApp PWA安装前置放在了官网页，可以提升PWA安装和转化。</div>
+        </div>
+      </div>
+      <div class="issue">
+        <div class="head">
+          <div class="no">4</div>
+          <div class="title">ewallet推荐充值-点击进入三方充值页面后</div>
+        </div>
+        <ul>
+          <li>用户点击右上角×，无法返回至原进入页面如直播/交友房</li>
+          <li>用户在chrome登录，点击推荐充值跳转三方后返回至pwa了(如果有pwa)，实际用户在浏览器操作的，会导致用户有疑惑，且pwa中点击返回无法返回至app内，一直在充值页循环</li>
+        </ul>
+      </div>
+      <div class="issue">
+        <div class="head">
+          <div class="no">5</div>
+          <div class="title">iOS-pwa 谷歌充值，先唤起中间跳转页，点击进入后不填写返回，会退出到中间跳转页，此时点击pay无反应</div>
+        </div>
+      </div>
+      <div class="issue">
+        <div class="head">
+          <div class="no">6</div>
+          <div class="title">视频聊拨打方点击充值后，接收方页面为黑屏。如果是ewallet充值，点击充值页面的返回商户，回到余额页面，再点击返回会直接回到首页，但是接收方显示该通电话仍在拨打中。</div>
+        </div>
+      </div>
+    </div>
+    <div class="shot-row">
+      <div class="shot">
+        <img src="Tumile_PWA安装前置.png" alt="Tumile 官网 PWA 安装前置">
+        <div class="cap">Tumile：官网页前置 PWA 安装</div>
+      </div>
+      <div class="shot">
+        <img src="iOS_PWA谷歌充值.png" alt="iOS PWA 谷歌充值中间页">
+        <div class="cap">iOS PWA 谷歌充值中间页</div>
+      </div>
+      <div class="shot">
+        <img src="Payermax充值页.png" alt="Payermax 三方充值页">
+        <div class="cap">三方充值页（Payermax）</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="s6">
+    <div class="section-title">七、一句话结论</div>
+    <div class="notes">
+      <div class="note">
+        <strong>充值：</strong>聊中缺 3 美金会制造挂断摩擦；回拨数据与 App 历史均支持「小额续聊刚需」。
+        建议视频聊余额不足场景放开 3 美金做 A/B，盯续聊率与 ARPPU。
+      </div>
+      <div class="note">
+        <strong>登录：</strong>验证码登录失败日均约 405 人。建议登录逻辑同步 App（密码 / 本机免验码），减流失、降验证码成本。
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">WebApp 周会汇报 · 视频聊充值档位 & 登录优化</div>
+</div>
+
+<script>
+// 横轴：场景；系列：档位
+const scenes = ['视频聊期间', '结束后1分钟', '结束后3分钟', '日常对照'];
+const tierSeries = [
+  { name: '1美金', color: '#94a3b8', data: [0.8, 24.8, 23.3, 25.56] },
+  { name: '3美金', color: '#0f766e', data: [2.2, 43.9, 43.1, 38.67] },
+  { name: '10美金', color: '#d97706', data: [78.3, 26.2, 27.2, 26.63] },
+  { name: '30美金', color: '#1d4ed8', data: [17.4, 4.7, 5.9, 7.74] },
+  { name: '100美金', color: '#a8a29e', data: [1.3, 0.5, 0.43, 1.28] }
+];
+
+const tierChart = echarts.init(document.getElementById('tierChart'));
+tierChart.setOption({
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: { type: 'shadow' },
+    formatter: ps => {
+      let s = ps[0].axisValue + '<br/>';
+      ps.forEach(p => { s += p.marker + p.seriesName + '：' + p.value + '%<br/>'; });
+      return s;
+    }
+  },
+  legend: { top: 0, left: 'center', itemGap: 14 },
+  grid: { left: 48, right: 16, top: 40, bottom: 36 },
+  xAxis: {
+    type: 'category',
+    data: scenes,
+    axisLabel: { fontSize: 12, interval: 0 }
+  },
+  yAxis: {
+    type: 'value',
+    name: '订单占比 %',
+    axisLabel: { formatter: v => v + '%' },
+    splitLine: { lineStyle: { color: '#f0f0f0' } }
+  },
+  series: tierSeries.map(s => ({
+    name: s.name,
+    type: 'bar',
+    barMaxWidth: 22,
+    itemStyle: { color: s.color, borderRadius: [3, 3, 0, 0] },
+    data: s.data,
+    label: {
+      show: s.name === '1美金' || s.name === '3美金' || s.name === '10美金',
+      position: 'top',
+      fontSize: 10,
+      color: '#6b7280',
+      formatter: p => p.value >= 10 ? p.value + '%' : ''
+    }
+  }))
+});
+
+const callbackChart = echarts.init(document.getElementById('callbackChart'));
+callbackChart.setOption({
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: { type: 'shadow' },
+    formatter: ps => {
+      let s = ps[0].axisValue + '<br/>';
+      ps.forEach(p => { s += p.marker + p.seriesName + '：' + p.value + '%<br/>'; });
+      return s;
+    }
+  },
+  legend: { top: 0 },
+  grid: { left: 44, right: 12, top: 36, bottom: 24 },
+  xAxis: { type: 'category', data: ['1美金', '3美金', '10美金'] },
+  yAxis: {
+    type: 'value', max: 100,
+    axisLabel: { formatter: v => v + '%' },
+    splitLine: { lineStyle: { color: '#f0f0f0' } }
+  },
+  series: [
+    {
+      name: '回拨约聊',
+      type: 'bar',
+      barMaxWidth: 34,
+      itemStyle: { color: '#1d4ed8', borderRadius: [3, 3, 0, 0] },
+      data: [67, 73, 76],
+      label: { show: true, position: 'top', formatter: '{c}%', fontSize: 11 }
+    },
+    {
+      name: '回拨同一人',
+      type: 'bar',
+      barMaxWidth: 34,
+      itemStyle: { color: '#0f766e', borderRadius: [3, 3, 0, 0] },
+      data: [40, 55, 54],
+      label: { show: true, position: 'top', formatter: '{c}%', fontSize: 11 }
+    }
+  ]
+});
+
+const appChart = echarts.init(document.getElementById('appChart'));
+appChart.setOption({
+  tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+  legend: { top: 0 },
+  grid: { left: 48, right: 72, top: 48, bottom: 28 },
+  xAxis: {
+    type: 'category',
+    data: ['聊中·取消前', '聊中·取消后', '结束后1min·取消前', '结束后1min·取消后']
+  },
+  yAxis: [
+    { type: 'value', name: '订单(万)', splitLine: { lineStyle: { color: '#f0f0f0' } } },
+    { type: 'value', name: '金额(万美元)', splitLine: { show: false } }
+  ],
+  series: [
+    {
+      name: '订单数(万)',
+      type: 'bar',
+      barMaxWidth: 36,
+      itemStyle: { color: 'rgba(15, 118, 110, 0.45)', borderRadius: [3, 3, 0, 0] },
+      data: [18.2, 8.4, 7.1, 9.5],
+      label: {
+        show: true,
+        position: 'inside',
+        formatter: '{c}万',
+        fontSize: 12,
+        fontWeight: 650,
+        color: '#0f766e'
+      }
+    },
+    {
+      name: '总金额(万USD)',
+      type: 'line',
+      yAxisIndex: 1,
+      symbol: 'circle',
+      symbolSize: 8,
+      itemStyle: { color: '#d97706' },
+      lineStyle: { width: 2.5 },
+      data: [71.5, 74.8, 29.4, 33.7],
+      label: {
+        show: true,
+        position: 'top',
+        formatter: '{c}万$',
+        fontSize: 11,
+        color: '#d97706',
+        distance: 8
+      }
+    }
+  ]
+});
+
+window.addEventListener('resize', () => {
+  tierChart.resize();
+  callbackChart.resize();
+  appChart.resize();
+});
+</script>
+</body>
+</html>
