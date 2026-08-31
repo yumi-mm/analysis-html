@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>视频聊 3 美金档位上线效果</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --green: #0f766e;
+      --green-soft: #ccfbf1;
+      --blue: #2563eb;
+      --blue-soft: #dbeafe;
+      --orange: #d97706;
+      --orange-soft: #ffedd5;
+      --rose: #be123c;
+      --rose-soft: #ffe4e6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 22px 36px;
+    }
+    .hero {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 26px 28px 24px;
+      margin-bottom: 14px;
+    }
+    .eyebrow {
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      margin-bottom: 6px;
+    }
+    h1 {
+      font-size: 26px;
+      line-height: 1.25;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .period {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .pill {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 10px;
+      color: var(--muted);
+      font-size: 12px;
+      background: #fafafa;
+    }
+    .pill strong { color: var(--text); }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .kpi {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px 18px;
+    }
+    .kpi .label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+    .kpi .value {
+      font-size: 24px;
+      font-weight: 750;
+      line-height: 1.2;
+    }
+    .kpi .detail {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 5px;
+    }
+    .kpi.green { background: #f0fdfa; border-color: #99f6e4; }
+    .kpi.green .value { color: var(--green); }
+    .kpi.blue { background: #eff6ff; border-color: #bfdbfe; }
+    .kpi.blue .value { color: var(--blue); }
+    .kpi.orange { background: #fff7ed; border-color: #fed7aa; }
+    .kpi.orange .value { color: var(--orange); }
+    .kpi.rose { background: #fff1f2; border-color: #fecdd3; }
+    .kpi.rose .value { color: var(--rose); }
+    .section {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 20px 22px 18px;
+      margin-bottom: 14px;
+    }
+    .section-title {
+      display: flex;
+      align-items: baseline;
+      gap: 9px;
+      font-size: 17px;
+      font-weight: 750;
+      margin-bottom: 3px;
+    }
+    .section-title .tag {
+      color: var(--green);
+      background: var(--green-soft);
+      border-radius: 999px;
+      font-size: 11px;
+      padding: 2px 8px;
+      font-weight: 650;
+    }
+    .section-desc {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .chart {
+      width: 100%;
+      height: 390px;
+    }
+    .scene-charts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    .scene-chart {
+      width: 100%;
+      height: 330px;
+    }
+    .private-charts {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+    .private-chart {
+      width: 100%;
+      height: 320px;
+    }
+    .conclusion {
+      border-left: 4px solid var(--orange);
+      background: var(--orange-soft);
+      border-radius: 8px;
+      padding: 13px 15px;
+      font-size: 13px;
+    }
+    .conclusion strong { color: #92400e; }
+    .note {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 10px;
+    }
+    @media (max-width: 760px) {
+      .kpis { grid-template-columns: 1fr 1fr; }
+      .page { padding: 16px 12px 24px; }
+      .hero, .section { padding-left: 15px; padding-right: 15px; }
+      h1 { font-size: 22px; }
+      .chart { height: 340px; }
+      .scene-charts { grid-template-columns: 1fr; }
+      .private-charts { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 460px) {
+      .kpis { grid-template-columns: 1fr; }
+      .chart { height: 320px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="eyebrow">91 打点 · 视频聊充值效果</div>
+      <h1>视频聊开放 3 美金档位：上线前后对比</h1>
+      <div class="subtitle">以 2026 年 8 月 27 日为上线日，排除上线当天，比较上线前后各 3 天数据。</div>
+      <div class="period">
+        <span class="pill"><strong>上线前：</strong>8/24～8/26</span>
+        <span class="pill"><strong>上线后：</strong>8/28～8/30</span>
+        <span class="pill"><strong>统计范围：</strong>91 打点 + t_video_matche_order，按通话时间识别聊中</span>
+      </div>
+    </section>
+
+    <section class="kpis">
+      <div class="kpi green">
+        <div class="label">整体日均充值用户</div>
+        <div class="value">+39.9%</div>
+        <div class="detail">2,204.7 → 3,084.0 人/天</div>
+      </div>
+      <div class="kpi green">
+        <div class="label">整体日均订单</div>
+        <div class="value">+50.7%</div>
+        <div class="detail">4,248.3 → 6,401.3 单/天</div>
+      </div>
+      <div class="kpi orange">
+        <div class="label">整体日均金额</div>
+        <div class="value">+11.2%</div>
+        <div class="detail">45,694 → 50,811 美元/天</div>
+      </div>
+      <div class="kpi rose">
+        <div class="label">10 美金日均订单</div>
+        <div class="value">−3.4%</div>
+        <div class="detail">3,139.7 → 3,032.3 单/天</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">一、各充值档位日均订单数 <span class="tag">单位：单/天</span></div>
+      <div class="section-desc">对比上线前后各充值档位的日均订单量，突出 3 美金档位的增量。</div>
+      <div id="ordersChart" class="chart"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">二、各充值档位日均充值金额 <span class="tag">单位：美元/天</span></div>
+      <div class="section-desc">金额按 91 打点中的充值金额字段汇总，未按用户数重复计算。</div>
+      <div id="amountChart" class="chart"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">三、聊中与挂断后充值变化 <span class="tag">单位：日均</span></div>
+      <div class="section-desc">观察 3 美金上线后，聊中新增是否以挂断后充值减少为代价。</div>
+      <div class="scene-charts">
+        <div id="sceneOrdersChart" class="scene-chart"></div>
+        <div id="sceneAmountChart" class="scene-chart"></div>
+      </div>
+      <div class="note">结束后 3 分钟包含结束后 1 分钟数据，两个窗口不相加。</div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">四、私信场景各档位变化 <span class="tag">source：6/7/8/9</span></div>
+      <div class="section-desc">服务端将视频聊与私信归为同一充值场景；以下为私信相关来源上线前后各 3 天日均对比。</div>
+      <div class="private-charts">
+        <div id="privateOrdersChart" class="private-chart"></div>
+        <div id="privateAmountChart" class="private-chart"></div>
+      </div>
+      <div class="note">重点：3 美金档位日均订单由 7.7 单提升至 431.7 单；10 美金日均订单由 309.7 单降至 290.3 单。</div>
+    </section>
+
+    <section class="section">
+      <div class="conclusion">
+        <strong>汇报结论：</strong>3 美金档位上线后，聊中日均充值用户从 2,204.7 人提升至 3,084.0 人，增长 39.9%；日均订单从 4,248.3 单提升至 6,401.3 单，增长 50.7%。其中 3 美金日均订单从 320 单提升至 2,520.7 单，订单占比从 7.5% 提升至 39.4%，是聊中订单增长的主要来源；10 美金日均订单下降 3.4%。
+        <br>考虑到上线前聊中没有 3 美金档位，原有小额需求可能在挂断后完成充值，因此重点观察挂断后变化。结果显示，结束后 1 分钟和 3 分钟内订单并未降低，分别增长 1.7% 和 4.5%，目前没有看到聊中新增订单明显挤压挂断后充值的情况。
+      </div>
+      <div class="note">说明：上线后样本仅 3 天，且包含月末日期，整体订单和金额仍需结合后续正常日期持续观察。</div>
+    </section>
+  </main>
+
+  <script>
+    const tiers = ['1美金', '3美金', '10美金', '30美金', '100美金', '300美金', '其他'];
+    const beforeOrders = [138.0, 320.0, 3139.7, 579.3, 66.3, 0.3, 4.7];
+    const afterOrders = [169.0, 2520.7, 3032.3, 602.0, 71.7, 1.0, 4.7];
+    const beforeAmounts = [96.66, 861.30, 24962.67, 14198.66, 5368.69, 108.15, 97.48];
+    const afterAmounts = [118.30, 5881.97, 24244.22, 14479.73, 5744.15, 254.70, 88.03];
+
+    const common = {
+      animationDuration: 500,
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'shadow' },
+        valueFormatter: value => Number(value).toLocaleString('en-US', {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 2
+        })
+      },
+      legend: {
+        top: 0,
+        right: 0,
+        itemGap: 18,
+        textStyle: { color: '#4b5563', fontSize: 12 }
+      },
+      grid: { left: 54, right: 24, top: 42, bottom: 48, containLabel: true },
+      xAxis: {
+        type: 'category',
+        data: tiers,
+        axisLabel: { color: '#6b7280', fontSize: 12 },
+        axisLine: { lineStyle: { color: '#9ca3af' } }
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: { color: '#6b7280', fontSize: 11 },
+        splitLine: { lineStyle: { color: '#eef0f2' } },
+        axisLine: { show: false }
+      }
+    };
+
+    const ordersChart = echarts.init(document.getElementById('ordersChart'));
+    ordersChart.setOption({
+      ...common,
+      yAxis: {
+        ...common.yAxis,
+        name: '单/天',
+        nameTextStyle: { color: '#6b7280', fontSize: 11 },
+        nameGap: 12
+      },
+      series: [
+        {
+          name: '上线前',
+          type: 'bar',
+          data: beforeOrders,
+          barMaxWidth: 30,
+          itemStyle: { color: '#94a3b8', borderRadius: [4, 4, 0, 0] },
+          label: { show: true, position: 'top', fontSize: 10, color: '#64748b', formatter: p => p.value > 0 ? p.value : '' }
+        },
+        {
+          name: '上线后',
+          type: 'bar',
+          data: afterOrders,
+          barMaxWidth: 30,
+          itemStyle: { color: '#0f766e', borderRadius: [4, 4, 0, 0] },
+          label: { show: true, position: 'top', fontSize: 10, color: '#0f766e', formatter: p => p.value > 0 ? p.value : '' }
+        }
+      ]
+    });
+
+    const amountChart = echarts.init(document.getElementById('amountChart'));
+    amountChart.setOption({
+      ...common,
+      yAxis: {
+        ...common.yAxis,
+        name: '美元/天',
+        nameTextStyle: { color: '#6b7280', fontSize: 11 },
+        nameGap: 12
+      },
+      series: [
+        {
+          name: '上线前',
+          type: 'bar',
+          data: beforeAmounts,
+          barMaxWidth: 30,
+          itemStyle: { color: '#cbd5e1', borderRadius: [4, 4, 0, 0] },
+          label: { show: true, position: 'top', fontSize: 10, color: '#64748b', formatter: p => p.value > 0 ? Math.round(p.value) : '' }
+        },
+        {
+          name: '上线后',
+          type: 'bar',
+          data: afterAmounts,
+          barMaxWidth: 30,
+          itemStyle: { color: '#d97706', borderRadius: [4, 4, 0, 0] },
+          label: { show: true, position: 'top', fontSize: 10, color: '#b45309', formatter: p => p.value > 0 ? Math.round(p.value) : '' }
+        }
+      ]
+    });
+
+    const scenes = ['聊中', '结束后1分钟', '结束后3分钟'];
+    const beforeSceneOrders = [4248.3, 4263.7, 9901.0];
+    const afterSceneOrders = [6401.3, 4337.7, 10350.3];
+    const beforeSceneAmounts = [45693.61, 19284.87, 51124.56];
+    const afterSceneAmounts = [50811.11, 21056.67, 55953.10];
+
+    const sceneChartBase = {
+      animationDuration: 500,
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'shadow' },
+        valueFormatter: value => Number(value).toLocaleString('en-US', {
+          maximumFractionDigits: 1
+        })
+      },
+      legend: {
+        top: 0,
+        right: 0,
+        itemGap: 14,
+        textStyle: { color: '#4b5563', fontSize: 12 }
+      },
+      grid: { left: 54, right: 20, top: 42, bottom: 52, containLabel: true },
+      xAxis: {
+        type: 'category',
+        data: scenes,
+        axisLabel: { color: '#6b7280', fontSize: 12 },
+        axisLine: { lineStyle: { color: '#9ca3af' } }
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: { color: '#6b7280', fontSize: 11 },
+        splitLine: { lineStyle: { color: '#eef0f2' } },
+        axisLine: { show: false }
+      }
+    };
+
+    const sceneOrdersChart = echarts.init(document.getElementById('sceneOrdersChart'));
+    sceneOrdersChart.setOption({
+      ...sceneChartBase,
+      title: {
+        text: '日均充值订单数',
+        left: 0,
+        top: 0,
+        textStyle: { color: '#374151', fontSize: 14, fontWeight: 650 }
+      },
+      legend: { ...sceneChartBase.legend, top: 0, right: 0 },
+      grid: { ...sceneChartBase.grid, top: 42 },
+      yAxis: {
+        ...sceneChartBase.yAxis,
+        name: '单/天',
+        nameTextStyle: { color: '#6b7280', fontSize: 11 },
+        nameGap: 12
+      },
+      series: [
+        {
+          name: '上线前',
+          type: 'bar',
+          data: beforeSceneOrders,
+          barMaxWidth: 34,
+          itemStyle: { color: '#94a3b8', borderRadius: [4, 4, 0, 0] },
+          label: { show: true, position: 'top', fontSize: 10, color: '#64748b', formatter: p => p.value.toFixed(1) }
+        },
+        {
+          name: '上线后',
+          type: 'bar',
+          data: afterSceneOrders,
+          barMaxWidth: 34,
+          itemStyle: { color: '#0f766e', borderRadius: [4, 4, 0, 0] },
+          label: { show: true, position: 'top', fontSize: 10, color: '#0f766e', formatter: p => p.value.toFixed(1) }
+        }
+      ]
+    });
+
+    const sceneAmountChart = echarts.init(document.getElementById('sceneAmountChart'));
+    sceneAmountChart.setOption({
+      ...sceneChartBase,
+      title: {
+        text: '日均充值金额',
+        left: 0,
+        top: 0,
+        textStyle: { color: '#374151', fontSize: 14, fontWeight: 650 }
+      },
+      legend: { ...sceneChartBase.legend, top: 0, right: 0 },
+      grid: { ...sceneChartBase.grid, top: 42 },
+      yAxis: {
+        ...sceneChartBase.yAxis,
+        name: '美元/天',
+        nameTextStyle: { color: '#6b7280', fontSize: 11 },
+        nameGap: 12
+      },
+      series: [
+        {
+          name: '上线前',
+          type: 'bar',
+          data: beforeSceneAmounts,
+          barMaxWidth: 34,
+          itemStyle: { color: '#cbd5e1', borderRadius: [4, 4, 0, 0] },
+          label: { show: true, position: 'top', fontSize: 10, color: '#64748b', formatter: p => Math.round(p.value) }
+        },
+        {
+          name: '上线后',
+          type: 'bar',
+          data: afterSceneAmounts,
+          barMaxWidth: 34,
+          itemStyle: { color: '#d97706', borderRadius: [4, 4, 0, 0] },
+          label: { show: true, position: 'top', fontSize: 10, color: '#b45309', formatter: p => Math.round(p.value) }
+        }
+      ]
+    });
+
+    const privateTiers = ['1美金', '3美金', '10美金', '30美金', '100美金', '300美金'];
+    const privateBeforeOrders = [6.3, 7.7, 309.7, 74.0, 10.3, 0.0];
+    const privateAfterOrders = [9.7, 431.7, 290.3, 83.7, 12.0, 0.3];
+    const privateBeforeAmounts = [4.43, 16.10, 2346.36, 1736.77, 816.06, 0.0];
+    const privateAfterAmounts = [6.77, 956.07, 2208.91, 1971.37, 913.31, 108.15];
+
+    const privateBase = {
+      animationDuration: 500,
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'shadow' },
+        valueFormatter: value => Number(value).toLocaleString('en-US', {
+          maximumFractionDigits: 2
+        })
+      },
+      legend: {
+        top: 0,
+        right: 0,
+        itemGap: 10,
+        textStyle: { color: '#4b5563', fontSize: 11 }
+      },
+      grid: { left: 48, right: 12, top: 42, bottom: 46, containLabel: true },
+      xAxis: {
+        type: 'category',
+        data: privateTiers,
+        axisLabel: { color: '#6b7280', fontSize: 11 },
+        axisLine: { lineStyle: { color: '#9ca3af' } }
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: { color: '#6b7280', fontSize: 10 },
+        splitLine: { lineStyle: { color: '#eef0f2' } },
+        axisLine: { show: false }
+      }
+    };
+
+    function privateOption(title, unit, before, after, formatter) {
+      return {
+        ...privateBase,
+        title: {
+          text: title,
+          left: 0,
+          top: 0,
+          textStyle: { color: '#374151', fontSize: 13, fontWeight: 650 }
+        },
+        legend: { ...privateBase.legend, top: 0, right: 0 },
+        grid: { ...privateBase.grid, top: 40 },
+        yAxis: {
+          ...privateBase.yAxis,
+          name: unit,
+          nameTextStyle: { color: '#6b7280', fontSize: 10 },
+          nameGap: 10
+        },
+        series: [
+          {
+            name: '上线前',
+            type: 'bar',
+            data: before,
+            barMaxWidth: 22,
+            itemStyle: { color: '#94a3b8', borderRadius: [3, 3, 0, 0] },
+            label: { show: true, position: 'top', fontSize: 9, color: '#64748b', formatter }
+          },
+          {
+            name: '上线后',
+            type: 'bar',
+            data: after,
+            barMaxWidth: 22,
+            itemStyle: { color: '#0f766e', borderRadius: [3, 3, 0, 0] },
+            label: { show: true, position: 'top', fontSize: 9, color: '#0f766e', formatter }
+          }
+        ]
+      };
+    }
+
+    const privateOrdersChart = echarts.init(document.getElementById('privateOrdersChart'));
+    privateOrdersChart.setOption(privateOption(
+      '日均订单数',
+      '单/天',
+      privateBeforeOrders,
+      privateAfterOrders,
+      p => p.value > 0 ? p.value.toFixed(1) : ''
+    ));
+
+    const privateAmountChart = echarts.init(document.getElementById('privateAmountChart'));
+    privateAmountChart.setOption(privateOption(
+      '日均充值金额',
+      '美元/天',
+      privateBeforeAmounts,
+      privateAfterAmounts,
+      p => p.value > 0 ? Math.round(p.value) : ''
+    ));
+
+    window.addEventListener('resize', () => {
+      ordersChart.resize();
+      amountChart.resize();
+      sceneOrdersChart.resize();
+      sceneAmountChart.resize();
+      privateOrdersChart.resize();
+      privateAmountChart.resize();
+    });
+  </script>
+</body>
+</html>

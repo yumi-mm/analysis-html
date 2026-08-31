@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebApp 视频聊充值档位与回拨分析</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+  :root {
+    --bg: #f3f4f6;
+    --card: #ffffff;
+    --text: #111827;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --accent: #0f766e;
+    --accent-soft: #ccfbf1;
+    --warn: #b45309;
+    --warn-soft: #ffedd5;
+    --blue: #1d4ed8;
+    --green: #047857;
+    --amber: #d97706;
+    --rose: #be123c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .page { max-width: 1100px; margin: 0 auto; padding: 28px 20px 48px; }
+  .hero {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 28px 28px 24px;
+    margin-bottom: 20px;
+  }
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  h1 { font-size: 24px; font-weight: 700; margin-bottom: 10px; }
+  .verdict {
+    font-size: 15px;
+    color: #374151;
+    max-width: 920px;
+  }
+  .verdict strong { color: var(--accent); font-weight: 700; }
+  .meta {
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .kpi {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 16px 14px;
+  }
+  .kpi .label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .kpi .value { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+  .kpi .sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .kpi.teal .value { color: var(--accent); }
+  .kpi.amber .value { color: var(--amber); }
+  .kpi.blue .value { color: var(--blue); }
+  .kpi.rose .value { color: var(--rose); }
+  .section {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px 24px 20px;
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .section-desc {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .chart { width: 100%; height: 380px; }
+  .chart.short { height: 300px; }
+  .note-list {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    display: grid;
+    gap: 8px;
+  }
+  .note {
+    font-size: 13px;
+    color: #374151;
+    padding: 10px 12px;
+    background: #f9fafb;
+    border-radius: 8px;
+    border-left: 3px solid var(--accent);
+  }
+  .note.warn { border-left-color: var(--warn); background: var(--warn-soft); }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th, td {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--line);
+    text-align: right;
+  }
+  th:first-child, td:first-child { text-align: left; }
+  th {
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 12px;
+    background: #f9fafb;
+  }
+  tr.hl td { background: var(--accent-soft); font-weight: 600; }
+  .rec-list, .watch-list {
+    list-style: none;
+    display: grid;
+    gap: 10px;
+  }
+  .rec-list li, .watch-list li {
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: #f9fafb;
+    border: 1px solid var(--line);
+    font-size: 13px;
+  }
+  .rec-list li strong, .watch-list li strong { color: var(--text); }
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    margin-right: 8px;
+  }
+  .footer {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+  }
+  @media (max-width: 860px) {
+    .kpis, .grid-2 { grid-template-columns: 1fr 1fr; }
+    .chart { height: 320px; }
+  }
+  @media (max-width: 560px) {
+    .kpis, .grid-2 { grid-template-columns: 1fr; }
+    h1 { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="hero">
+    <div class="eyebrow">WebApp · 视频聊充值分析</div>
+    <h1>充值档位结构与回拨率</h1>
+    <p class="verdict">
+      聊中几乎只能走 <strong>10 / 30 美金</strong>；挂断后立刻充以 <strong>1 / 3 美金</strong> 为主，
+      且约八成会再拨、约一半（尤其 <strong>3 美金</strong>）回拨同一人。
+      建议在视频聊内优先放开 3 美金并做 A/B。
+    </p>
+    <div class="meta">
+      口径：406 step=4 · 聊中 page=//videoChat · 回拨=约聊(init_type=2) · 同人=上一通同一被叫
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi teal">
+      <div class="label">聊中 10+30 订单占比</div>
+      <div class="value">95.7%</div>
+      <div class="sub">1+3 仅约 3%，可忽略</div>
+    </div>
+    <div class="kpi amber">
+      <div class="label">挂断后 1 分钟 1+3</div>
+      <div class="value">68.7%</div>
+      <div class="sub">结构相对聊中明显翻转</div>
+    </div>
+    <div class="kpi blue">
+      <div class="label">3 美金同人回拨率</div>
+      <div class="value">55%</div>
+      <div class="sub">1分钟充 → 2分钟回拨同一人</div>
+    </div>
+    <div class="kpi rose">
+      <div class="label">立刻充后再拨约聊</div>
+      <div class="value">~70%+</div>
+      <div class="sub">更像续聊，而非囤钻</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">一、各场景充值档位订单占比</div>
+    <div class="section-desc">对比视频聊期间、挂断后立刻充、以及日常对照（非期间且非挂断后 3 分钟）</div>
+    <div id="tierChart" class="chart"></div>
+    <div class="note-list">
+      <div class="note">聊中结构被 UI 锁定：1+3 合计约 3%；10+30 合计约 95.7%，为绝对主力。</div>
+      <div class="note">挂断后结构翻转：结束后 1～3 分钟内，1+3 升至约 66%～69%；10+30 降至约 31%～32%。</div>
+      <div class="note warn">日常对照里 1+3 也约占 64%，说明用户平时就偏爱低档。论证重点不是「平时不充低档」，而是聊中没有低档入口，迫使想小额续聊的用户先挂断再充。</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="section" style="margin-bottom:0">
+      <div class="section-title">二、回拨率（核心论据）</div>
+      <div class="section-desc">挂断后 1 分钟内充值 → 充值后 2 分钟内回拨</div>
+      <div id="callbackChart" class="chart short"></div>
+      <div class="note-list">
+        <div class="note">立刻充的用户中约七成会很快再拨约聊，更像「为续聊而充」。</div>
+        <div class="note">约一半会回拨上一通同一人；3 美金同人回拨 55%，与 10 美金接近，高于 1 美金（40%）。</div>
+      </div>
+    </div>
+    <div class="section" style="margin-bottom:0">
+      <div class="section-title">明细表</div>
+      <div class="section-desc">订单占比 %（主要档位）</div>
+      <table>
+        <thead>
+          <tr>
+            <th>档位</th>
+            <th>聊中</th>
+            <th>结束后1min</th>
+            <th>结束后3min</th>
+            <th>日常对照</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1美金</td><td>0.80</td><td>24.80</td><td>23.30</td><td>25.56</td></tr>
+          <tr class="hl"><td>3美金</td><td>2.20</td><td>43.90</td><td>43.10</td><td>38.67</td></tr>
+          <tr><td>10美金</td><td>78.30</td><td>26.20</td><td>27.20</td><td>26.63</td></tr>
+          <tr><td>30美金</td><td>17.40</td><td>4.70</td><td>5.90</td><td>7.74</td></tr>
+          <tr><td>100美金</td><td>1.30</td><td>0.50</td><td>0.40</td><td>1.28</td></tr>
+        </tbody>
+      </table>
+      <div class="note-list">
+        <div class="note">宽窗口参考：挂断后 3 分钟内充 → 5 分钟内任意约聊回拨约 78%～84%；同人回拨 1美金约 37%、3美金约 51%、10美金约 51%。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:16px">
+    <div class="section" style="margin-bottom:0">
+      <div class="section-title">三、建议优化</div>
+      <ul class="rec-list" style="margin-top:12px">
+        <li><span class="badge">优先</span><strong>视频聊面板放开 3 美金</strong>：尤其余额不足 / 下一分钟不够，减少「挂断→充值→再拨」摩擦；1 美金可作次选观察。</li>
+        <li><span class="badge">收起</span><strong>折叠聊中极少被选的高档</strong>（如 100/300），降低干扰。</li>
+        <li><span class="badge">实验</span><strong>先 A/B 再全量</strong>：警惕 10→3 降档分流，用实验验证净收益。</li>
+      </ul>
+    </div>
+    <div class="section" style="margin-bottom:0">
+      <div class="section-title">四、上线后关注指标</div>
+      <ul class="watch-list" style="margin-top:12px">
+        <li><strong>视频聊场景 ARPPU / 总充值金额</strong>：是否因降档下降</li>
+        <li><strong>接回率 / 续聊率（含同人回拨）</strong>：核心收益是否提升</li>
+        <li><strong>人均通话时长</strong>：是否整体拉长</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer">数据来源：server_log_data_rt(log_id=406) · t_video_matche_order · WebApp app_type 36/40</div>
+</div>
+
+<script>
+const tiers = ['1美金', '3美金', '10美金', '30美金', '100美金'];
+const scenes = {
+  '视频聊期间': [0.8, 2.2, 78.3, 17.4, 1.3],
+  '结束后1分钟': [24.8, 43.9, 26.2, 4.7, 0.5],
+  '结束后3分钟': [23.3, 43.1, 27.2, 5.9, 0.4],
+  '日常对照': [25.56, 38.67, 26.63, 7.74, 1.28]
+};
+const colors = {
+  '视频聊期间': '#0f766e',
+  '结束后1分钟': '#d97706',
+  '结束后3分钟': '#f59e0b',
+  '日常对照': '#64748b'
+};
+
+const tierChart = echarts.init(document.getElementById('tierChart'));
+tierChart.setOption({
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: { type: 'shadow' },
+    formatter: params => {
+      let s = params[0].axisValue + '<br/>';
+      params.forEach(p => { s += p.marker + p.seriesName + '：' + p.value + '%<br/>'; });
+      return s;
+    }
+  },
+  legend: { top: 0, left: 'center', itemGap: 18 },
+  grid: { left: 48, right: 16, top: 40, bottom: 36 },
+  xAxis: {
+    type: 'category',
+    data: tiers,
+    axisLabel: { fontSize: 12 }
+  },
+  yAxis: {
+    type: 'value',
+    name: '订单占比（%）',
+    nameTextStyle: { color: '#6b7280', fontSize: 11 },
+    axisLabel: { formatter: v => v + '%' },
+    splitLine: { lineStyle: { color: '#f0f0f0' } }
+  },
+  series: Object.keys(scenes).map(name => ({
+    name,
+    type: 'bar',
+    barMaxWidth: 22,
+    itemStyle: { color: colors[name], borderRadius: [3, 3, 0, 0] },
+    data: scenes[name],
+    label: {
+      show: name === '视频聊期间' || name === '结束后1分钟',
+      position: 'top',
+      fontSize: 10,
+      color: '#6b7280',
+      formatter: p => (p.value >= 10 ? p.value + '%' : '')
+    }
+  }))
+});
+
+const callbackChart = echarts.init(document.getElementById('callbackChart'));
+callbackChart.setOption({
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: { type: 'shadow' },
+    formatter: params => {
+      let s = params[0].axisValue + '<br/>';
+      params.forEach(p => { s += p.marker + p.seriesName + '：' + p.value + '%<br/>'; });
+      return s;
+    }
+  },
+  legend: { top: 0, left: 'center' },
+  grid: { left: 48, right: 16, top: 40, bottom: 28 },
+  xAxis: {
+    type: 'category',
+    data: ['1美金', '3美金', '10美金']
+  },
+  yAxis: {
+    type: 'value',
+    max: 100,
+    axisLabel: { formatter: v => v + '%' },
+    splitLine: { lineStyle: { color: '#f0f0f0' } }
+  },
+  series: [
+    {
+      name: '回拨约聊',
+      type: 'bar',
+      barMaxWidth: 36,
+      itemStyle: { color: '#1d4ed8', borderRadius: [3, 3, 0, 0] },
+      data: [67, 73, 76],
+      label: { show: true, position: 'top', formatter: '{c}%', fontSize: 11 }
+    },
+    {
+      name: '回拨同一人',
+      type: 'bar',
+      barMaxWidth: 36,
+      itemStyle: { color: '#0f766e', borderRadius: [3, 3, 0, 0] },
+      data: [40, 55, 54],
+      label: { show: true, position: 'top', formatter: '{c}%', fontSize: 11 }
+    }
+  ]
+});
+
+window.addEventListener('resize', () => {
+  tierChart.resize();
+  callbackChart.resize();
+});
+</script>
+</body>
+</html>
