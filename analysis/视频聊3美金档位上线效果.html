@@ -71,41 +71,59 @@
       background: #fafafa;
     }
     .pill strong { color: var(--text); }
-    .kpis {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-    .kpi {
+    .summary-table-wrap {
       background: var(--card);
       border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 16px 18px;
+      border-radius: 14px;
+      padding: 18px 22px;
+      margin-bottom: 14px;
+      overflow-x: auto;
     }
-    .kpi .label {
+    .summary-table-wrap .table-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .data-table th,
+    .data-table td {
+      padding: 11px 14px;
+      text-align: right;
+      border-bottom: 1px solid var(--line);
+    }
+    .data-table th:first-child,
+    .data-table td:first-child {
+      text-align: left;
+      font-weight: 600;
+    }
+    .data-table thead th {
+      background: #f9fafb;
       color: var(--muted);
       font-size: 12px;
-      margin-bottom: 5px;
+      font-weight: 650;
+      border-bottom: 2px solid var(--line);
     }
-    .kpi .value {
-      font-size: 24px;
-      font-weight: 750;
-      line-height: 1.2;
+    .data-table tbody tr:last-child td {
+      border-bottom: none;
     }
-    .kpi .detail {
-      color: var(--muted);
-      font-size: 12px;
-      margin-top: 5px;
+    .data-table tbody tr:hover td {
+      background: #fafafa;
     }
-    .kpi.green { background: #f0fdfa; border-color: #99f6e4; }
-    .kpi.green .value { color: var(--green); }
-    .kpi.blue { background: #eff6ff; border-color: #bfdbfe; }
-    .kpi.blue .value { color: var(--blue); }
-    .kpi.orange { background: #fff7ed; border-color: #fed7aa; }
-    .kpi.orange .value { color: var(--orange); }
-    .kpi.rose { background: #fff1f2; border-color: #fecdd3; }
-    .kpi.rose .value { color: var(--rose); }
+    .data-table .num {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+    }
+    .data-table .change {
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .data-table .change.up { color: var(--green); }
+    .data-table .change.down { color: var(--rose); }
+    .data-table .change.mid { color: var(--orange); }
     .section {
       background: var(--card);
       border: 1px solid var(--line);
@@ -170,7 +188,6 @@
       margin-top: 10px;
     }
     @media (max-width: 760px) {
-      .kpis { grid-template-columns: 1fr 1fr; }
       .page { padding: 16px 12px 24px; }
       .hero, .section { padding-left: 15px; padding-right: 15px; }
       h1 { font-size: 22px; }
@@ -179,8 +196,9 @@
       .private-charts { grid-template-columns: 1fr; }
     }
     @media (max-width: 460px) {
-      .kpis { grid-template-columns: 1fr; }
       .chart { height: 320px; }
+      .data-table th,
+      .data-table td { padding: 9px 10px; font-size: 12px; }
     }
   </style>
 </head>
@@ -197,27 +215,38 @@
       </div>
     </section>
 
-    <section class="kpis">
-      <div class="kpi green">
-        <div class="label">整体日均充值用户</div>
-        <div class="value">+39.9%</div>
-        <div class="detail">2,204.7 → 3,084.0 人/天</div>
-      </div>
-      <div class="kpi green">
-        <div class="label">整体日均订单</div>
-        <div class="value">+50.7%</div>
-        <div class="detail">4,248.3 → 6,401.3 单/天</div>
-      </div>
-      <div class="kpi orange">
-        <div class="label">整体日均金额</div>
-        <div class="value">+11.2%</div>
-        <div class="detail">45,694 → 50,811 美元/天</div>
-      </div>
-      <div class="kpi rose">
-        <div class="label">10 美金日均订单</div>
-        <div class="value">−3.4%</div>
-        <div class="detail">3,139.7 → 3,032.3 单/天</div>
-      </div>
+    <section class="summary-table-wrap">
+      <div class="table-title">核心指标对比（日均）</div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>指标</th>
+            <th>上线前（8/24～8/26）</th>
+            <th>上线后（8/28～8/30）</th>
+            <th>变化</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>整体日均充值用户</td>
+            <td class="num">2,204.7 人/天</td>
+            <td class="num">3,084.0 人/天</td>
+            <td class="change up">+39.9%</td>
+          </tr>
+          <tr>
+            <td>整体日均订单</td>
+            <td class="num">4,248.3 单/天</td>
+            <td class="num">6,401.3 单/天</td>
+            <td class="change up">+50.7%</td>
+          </tr>
+          <tr>
+            <td>整体日均金额</td>
+            <td class="num">45,694 美元/天</td>
+            <td class="num">50,811 美元/天</td>
+            <td class="change mid">+11.2%</td>
+          </tr>
+        </tbody>
+      </table>
     </section>
 
     <section class="section">
@@ -239,7 +268,6 @@
         <div id="sceneOrdersChart" class="scene-chart"></div>
         <div id="sceneAmountChart" class="scene-chart"></div>
       </div>
-      <div class="note">结束后 3 分钟包含结束后 1 分钟数据，两个窗口不相加。</div>
     </section>
 
     <section class="section">
@@ -254,10 +282,8 @@
 
     <section class="section">
       <div class="conclusion">
-        <strong>汇报结论：</strong>3 美金档位上线后，聊中日均充值用户从 2,204.7 人提升至 3,084.0 人，增长 39.9%；日均订单从 4,248.3 单提升至 6,401.3 单，增长 50.7%。其中 3 美金日均订单从 320 单提升至 2,520.7 单，订单占比从 7.5% 提升至 39.4%，是聊中订单增长的主要来源；10 美金日均订单下降 3.4%。
-        <br>考虑到上线前聊中没有 3 美金档位，原有小额需求可能在挂断后完成充值，因此重点观察挂断后变化。结果显示，结束后 1 分钟和 3 分钟内订单并未降低，分别增长 1.7% 和 4.5%，目前没有看到聊中新增订单明显挤压挂断后充值的情况。
+        <strong>汇报结论：</strong>3 美金档位上线后，聊中日均充值用户从 2,204.7 人提升至 3,084.0 人，增长 39.9%；日均订单从 4,248.3 单提升至 6,401.3 单，增长 50.7%。整体 3 美金档位日均订单从 320 单提升至 2,520.7 单，订单占比从 7.5% 提升至 39.4%，是聊中订单增长的主要来源。10 美金档位有一定转移情况，但幅度不大（日均订单下降 3.4%）。上线后样本仅 3 天且包含月末日期，整体效果还需持续观察。
       </div>
-      <div class="note">说明：上线后样本仅 3 天，且包含月末日期，整体订单和金额仍需结合后续正常日期持续观察。</div>
     </section>
   </main>
 
@@ -357,11 +383,11 @@
       ]
     });
 
-    const scenes = ['聊中', '结束后1分钟', '结束后3分钟'];
-    const beforeSceneOrders = [4248.3, 4263.7, 9901.0];
-    const afterSceneOrders = [6401.3, 4337.7, 10350.3];
-    const beforeSceneAmounts = [45693.61, 19284.87, 51124.56];
-    const afterSceneAmounts = [50811.11, 21056.67, 55953.10];
+    const scenes = ['聊中', '结束后1分钟'];
+    const beforeSceneOrders = [4248.3, 4263.7];
+    const afterSceneOrders = [6401.3, 4337.7];
+    const beforeSceneAmounts = [45693.61, 19284.87];
+    const afterSceneAmounts = [50811.11, 21056.67];
 
     const sceneChartBase = {
       animationDuration: 500,
