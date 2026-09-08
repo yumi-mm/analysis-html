@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebApp 注册转化率分析 · 周会汇报</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --green: #0f766e;
+      --green-soft: #ccfbf1;
+      --blue: #2563eb;
+      --blue-soft: #dbeafe;
+      --orange: #d97706;
+      --orange-soft: #ffedd5;
+      --rose: #be123c;
+      --rose-soft: #ffe4e6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 22px 36px;
+    }
+    .hero {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 26px 28px 24px;
+      margin-bottom: 14px;
+    }
+    .eyebrow {
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      margin-bottom: 6px;
+    }
+    h1 {
+      font-size: 26px;
+      line-height: 1.25;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .period {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .pill {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 10px;
+      color: var(--muted);
+      font-size: 12px;
+      background: #fafafa;
+    }
+    .pill strong { color: var(--text); }
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px 20px;
+    }
+    .card .label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    .card .title {
+      font-size: 16px;
+      font-weight: 750;
+      margin-bottom: 10px;
+    }
+    .card .metric {
+      font-size: 28px;
+      font-weight: 750;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+    }
+    .card .metric.good { color: var(--green); }
+    .card .metric.warn { color: var(--orange); }
+    .card .metric.bad { color: var(--rose); }
+    .card .detail {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    .section {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 20px 22px 18px;
+      margin-bottom: 14px;
+    }
+    .section-title {
+      display: flex;
+      align-items: baseline;
+      gap: 9px;
+      font-size: 17px;
+      font-weight: 750;
+      margin-bottom: 3px;
+    }
+    .section-title .tag {
+      color: var(--green);
+      background: var(--green-soft);
+      border-radius: 999px;
+      font-size: 11px;
+      padding: 2px 8px;
+      font-weight: 650;
+    }
+    .section-title .tag.warn {
+      color: #92400e;
+      background: var(--orange-soft);
+    }
+    .section-title .tag.bad {
+      color: var(--rose);
+      background: var(--rose-soft);
+    }
+    .section-desc {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 12px;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .data-table th,
+    .data-table td {
+      padding: 10px 12px;
+      text-align: right;
+      border-bottom: 1px solid var(--line);
+    }
+    .data-table th:first-child,
+    .data-table td:first-child,
+    .data-table th:nth-child(2),
+    .data-table td:nth-child(2) {
+      text-align: left;
+    }
+    .data-table thead th {
+      background: #f9fafb;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+      border-bottom: 2px solid var(--line);
+    }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover td { background: #fafafa; }
+    .data-table .num {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+    }
+    .data-table .pct { font-weight: 700; font-variant-numeric: tabular-nums; }
+    .data-table .pct.good { color: var(--green); }
+    .data-table .pct.warn { color: var(--orange); }
+    .data-table .pct.bad { color: var(--rose); }
+    .data-table .note {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 400;
+    }
+    .data-table tr.hl td {
+      background: #fffbeb;
+    }
+    .data-table tr.base td {
+      background: #f0fdfa;
+      font-weight: 650;
+    }
+    .chart {
+      width: 100%;
+      height: 360px;
+    }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .findings {
+      display: grid;
+      gap: 10px;
+    }
+    .finding {
+      border-left: 4px solid var(--orange);
+      background: var(--orange-soft);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 13px;
+    }
+    .finding.green {
+      border-left-color: var(--green);
+      background: var(--green-soft);
+    }
+    .finding.rose {
+      border-left-color: var(--rose);
+      background: var(--rose-soft);
+    }
+    .finding.blue {
+      border-left-color: var(--blue);
+      background: var(--blue-soft);
+    }
+    .finding strong { display: block; margin-bottom: 4px; }
+    .finding.green strong { color: #115e59; }
+    .finding.rose strong { color: #9f1239; }
+    .finding.blue strong { color: #1e40af; }
+    .finding strong { color: #92400e; }
+    .actions {
+      list-style: none;
+      display: grid;
+      gap: 8px;
+    }
+    .actions li {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 13px;
+    }
+    .actions li b {
+      color: var(--blue);
+      margin-right: 6px;
+    }
+    .foot-note {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 10px;
+    }
+    @media (max-width: 860px) {
+      .summary-cards, .two-col { grid-template-columns: 1fr; }
+      .page { padding: 16px 12px 24px; }
+      h1 { font-size: 22px; }
+      .chart { height: 300px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="eyebrow">403 打点 · WebApp 注册漏斗</div>
+      <h1>WebApp 三种注册方式转化分析</h1>
+      <div class="subtitle">对比一键注册、谷歌、手机号全链路转化，定位可提升环节，供周会讨论优先级。</div>
+      <div class="period">
+        <span class="pill"><strong>数据日期：</strong>2026-09-03</span>
+        <span class="pill"><strong>数据源：</strong>server_log_data_rt · log_id=403</span>
+        <span class="pill"><strong>口径：</strong>谷歌/手机号入口已按注册占比剔除登录用户</span>
+      </div>
+    </section>
+
+    <section class="summary-cards">
+      <div class="card">
+        <div class="label">一键注册 · quick</div>
+        <div class="title">整体转化最高</div>
+        <div class="metric good">93.5%</div>
+        <div class="detail">点击 24,881 → 成功 23,252<br>主损点：选语言 → 注册成功 96.1%</div>
+      </div>
+      <div class="card">
+        <div class="label">谷歌 · google</div>
+        <div class="title">入口流失最大</div>
+        <div class="metric bad">58.6%</div>
+        <div class="detail">注册入口 22,139 → 成功 12,035（54.4%）<br>主损点：点击→选账号仅 58.6%</div>
+      </div>
+      <div class="card">
+        <div class="label">手机号 · phone</div>
+        <div class="title">前半程损耗重</div>
+        <div class="metric warn">48.0%</div>
+        <div class="detail">注册入口 5,649 → 成功 2,712（48.0%）<br>主损点：输手机号、验证码、频控失败</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">一、三种方式总览对比 <span class="tag">讨论入口</span></div>
+      <div class="section-desc">谷歌/手机号入口点击已剔除登录用户，只看注册意图流量；一键注册本身即为注册流程。</div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>注册方式</th>
+            <th>入口点击（仅注册）</th>
+            <th>进入资料填写</th>
+            <th>注册成功</th>
+            <th>入口→成功</th>
+            <th>资料填写→成功</th>
+            <th>主要卡点</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>一键注册</td>
+            <td class="num">24,881</td>
+            <td class="num">24,290</td>
+            <td class="num">23,252</td>
+            <td class="pct good">93.5%</td>
+            <td class="pct good">95.7%</td>
+            <td class="note">末步略损</td>
+          </tr>
+          <tr>
+            <td>谷歌</td>
+            <td class="num">22,139</td>
+            <td class="num">12,970</td>
+            <td class="num">12,035</td>
+            <td class="pct warn">54.4%</td>
+            <td class="pct good">92.8%</td>
+            <td class="note">点击→选账号 58.6%</td>
+          </tr>
+          <tr>
+            <td>手机号</td>
+            <td class="num">5,649</td>
+            <td class="num">3,194</td>
+            <td class="num">2,712</td>
+            <td class="pct warn">48.0%</td>
+            <td class="pct warn">84.9%</td>
+            <td class="note">短信发送/校验失败</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="foot-note">谷歌入口(仅注册)=原入口×注册分支占比(12,970/30,543)，原含登录入口 52,137；手机号=原入口×(3,194/8,421)，原含登录入口 14,899。「进入资料填写」=验证成功量−老用户登录(step8)。</div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">二、漏斗形态对比 <span class="tag">图表</span></div>
+      <div class="section-desc">纵轴为相对「仅注册入口」的留存比例；谷歌/手机号已剔除登录用户。</div>
+      <div id="funnelChart" class="chart"></div>
+    </section>
+
+    <div class="two-col">
+      <section class="section" style="margin-bottom:0">
+        <div class="section-title">三、一键注册漏斗 <span class="tag">转化健康</span></div>
+        <div class="section-desc">全链路高转化，可作基线对照。</div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>步骤</th>
+              <th>数量</th>
+              <th>相对上一步</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1_点击快捷注册按钮</td>
+              <td class="num">24,881</td>
+              <td class="note">漏斗起点</td>
+            </tr>
+            <tr>
+              <td>2_选择了性别</td>
+              <td class="num">24,290</td>
+              <td class="pct good">97.6%</td>
+            </tr>
+            <tr>
+              <td>3_选择了语言</td>
+              <td class="num">24,195</td>
+              <td class="pct good">99.6%</td>
+            </tr>
+            <tr class="hl">
+              <td>4_一键注册成功</td>
+              <td class="num">23,252</td>
+              <td class="pct warn">96.1%</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="section" style="margin-bottom:0">
+        <div class="section-title">四、谷歌注册漏斗 <span class="tag warn">入口优先</span></div>
+        <div class="section-desc">入口已剔除登录用户；最大损耗仍在选账号，进入资料填写后接近一键注册水平。</div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>步骤</th>
+              <th>数量</th>
+              <th>相对上一步</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="base">
+              <td>1_入口点击（仅注册）</td>
+              <td class="num">22,139</td>
+              <td class="note">原含登录 52,137</td>
+            </tr>
+            <tr class="hl">
+              <td>2_选账号成功（注册分支）</td>
+              <td class="num">12,970</td>
+              <td class="pct bad">58.6%</td>
+            </tr>
+            <tr>
+              <td>3_选择了性别</td>
+              <td class="num">12,154</td>
+              <td class="pct good">93.7%</td>
+            </tr>
+            <tr>
+              <td>4_选择了语言</td>
+              <td class="num">12,084</td>
+              <td class="pct good">99.4%</td>
+            </tr>
+            <tr>
+              <td>5_统一注册成功</td>
+              <td class="num">12,045</td>
+              <td class="pct good">99.7%</td>
+            </tr>
+            <tr>
+              <td>6_统一登录成功</td>
+              <td class="num">12,035</td>
+              <td class="pct good">99.9%</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+
+    <section class="section" style="margin-top:14px">
+      <div class="section-title">五、手机号注册漏斗 <span class="tag bad">重点攻坚</span></div>
+      <div class="section-desc">入口已剔除登录用户；输手机号、验证码两步损耗大。失败原因拆解仍基于全量 step2/3 事件（含登录用户触达）。</div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>步骤</th>
+            <th>数量</th>
+            <th>相对上一步</th>
+            <th>说明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="base">
+            <td>1_入口点击（仅注册）</td>
+            <td class="num">5,649</td>
+            <td class="note">—</td>
+            <td class="note">原含登录 14,899</td>
+          </tr>
+          <tr class="hl">
+            <td>2_输入完成手机号（注册估算）</td>
+            <td class="num">4,362</td>
+            <td class="pct warn">77.2%</td>
+            <td class="note">按注册占比从全量 step2 折算</td>
+          </tr>
+          <tr class="hl">
+            <td>3_验证码成功（注册分支）</td>
+            <td class="num">3,194</td>
+            <td class="pct warn">73.2%</td>
+            <td class="note">= step3 − step8</td>
+          </tr>
+          <tr>
+            <td>4_选择了性别</td>
+            <td class="num">2,806</td>
+            <td class="pct warn">87.9%</td>
+            <td class="note">相对注册分支</td>
+          </tr>
+          <tr>
+            <td>5_选择了语言</td>
+            <td class="num">2,772</td>
+            <td class="pct good">98.8%</td>
+            <td class="note">相对第4步</td>
+          </tr>
+          <tr>
+            <td>6_统一注册成功</td>
+            <td class="num">2,694</td>
+            <td class="pct good">97.2%</td>
+            <td class="note">相对第5步</td>
+          </tr>
+          <tr>
+            <td>7_统一登录成功</td>
+            <td class="num">2,712</td>
+            <td class="pct good">100.7%</td>
+            <td class="note">略高于注册成功，存在路径重叠/时序差</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <div class="section-title">六、手机号失败原因拆解 <span class="tag bad">可行动</span></div>
+      <div class="section-desc">step2 失败以短信频控为主，step3 以验证码校验失败为主。下图仅展示主要失败类型。</div>
+      <div id="errorChart" class="chart" style="height:380px"></div>
+      <table class="data-table" style="margin-top:8px">
+        <thead>
+          <tr>
+            <th>步骤</th>
+            <th>失败类型归类</th>
+            <th>数量</th>
+            <th>占该步失败比</th>
+            <th>建议方向</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>step2</td>
+            <td>短信频控（分钟/小时/天/send_code_limit）</td>
+            <td class="num">~3,860</td>
+            <td class="pct bad">~82%</td>
+            <td class="note">优化频控提示、冷却倒计时、减少误触发重发</td>
+          </tr>
+          <tr>
+            <td>step2</td>
+            <td>参数/格式/区号错误</td>
+            <td class="num">~750</td>
+            <td class="pct warn">~16%</td>
+            <td class="note">加强号码校验与区号默认、错误文案本地化</td>
+          </tr>
+          <tr>
+            <td>step2</td>
+            <td>人机验证加载失败等</td>
+            <td class="num">~78</td>
+            <td class="pct">~2%</td>
+            <td class="note">排查 recaptcha 加载稳定性</td>
+          </tr>
+          <tr>
+            <td>step3</td>
+            <td>sms_auth_failed</td>
+            <td class="num">1,097</td>
+            <td class="pct bad">100%</td>
+            <td class="note">验证码到达率、有效期、自动填充体验</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="foot-note">频控数量按多语言同类文案合并估算：1分钟限次约 835、1小时限次约 564、1天限次 119、send_code_limit 2,347。</div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">七、结论与周会讨论点 <span class="tag">建议</span></div>
+      <div class="findings">
+        <div class="finding green">
+          <strong>一键注册已是健康基线</strong>
+          全链路转化 93.5%，末步 96.1% 略有损耗，可作为其他方式优化目标参照，不建议作为本周主攻。
+        </div>
+        <div class="finding rose">
+          <strong>谷歌优先打「点击→选账号」</strong>
+          剔除登录后注册入口约 2.2 万，选账号成功率仍仅 58.6%，是最大掉点；进入资料填写后转化 92.8%，接近一键注册。
+        </div>
+        <div class="finding orange finding" style="border-left-color:#d97706;background:#ffedd5">
+          <strong>手机号优先打短信链路</strong>
+          剔除登录后入口转化约 48.0%。step2 近八成失败来自频控，step3 有 1,097 次验证码失败；资料填写阶段本身不差（84.9%）。
+        </div>
+        <div class="finding blue">
+          <strong>入口已统一为注册口径</strong>
+          谷歌/手机号总览与图表入口均按「验证成功后注册占比」回推剔除登录用户，避免登录流量稀释注册转化率。
+        </div>
+      </div>
+      <div class="section-title" style="margin-top:16px;margin-bottom:10px">建议本周优先事项</div>
+      <ul class="actions">
+        <li><b>P0</b>手机号：梳理频控策略与前端提示（倒计时、禁止连点、失败原因可读），降低 step2 无效重试。</li>
+        <li><b>P0</b>手机号：排查 sms_auth_failed（到达延迟、过期、粘贴/自动填充），提升 step3 转化。</li>
+        <li><b>P1</b>谷歌：抽样分析 step1 有 error_msg / 中断场景（弹窗关闭、浏览器拦截、账号选择取消），补齐失败埋点。</li>
+        <li><b>P2</b>一键注册：观察末步 3.9% 损耗是否与网络超时、重复点击有关，作为次优优化。</li>
+      </ul>
+      <div class="foot-note">说明：当前为单日样本（2026-09-03），结论用于定位方向；上线改动后建议连续观察 3～7 天验证。</div>
+    </section>
+  </main>
+
+  <script>
+    const funnelChart = echarts.init(document.getElementById('funnelChart'));
+    funnelChart.setOption({
+      animationDuration: 500,
+      tooltip: {
+        trigger: 'axis',
+        valueFormatter: v => v == null ? '-' : v + '%'
+      },
+      legend: {
+        top: 0,
+        right: 0,
+        textStyle: { color: '#4b5563', fontSize: 12 }
+      },
+      grid: { left: 48, right: 24, top: 40, bottom: 48, containLabel: true },
+      xAxis: {
+        type: 'category',
+        data: ['入口点击(仅注册)', '账号/手机验证后', '进入资料填写', '注册成功'],
+        axisLabel: { color: '#6b7280', fontSize: 12, interval: 0 },
+        axisLine: { lineStyle: { color: '#9ca3af' } }
+      },
+      yAxis: {
+        type: 'value',
+        name: '相对入口留存 %',
+        max: 100,
+        axisLabel: { color: '#6b7280', formatter: '{value}%' },
+        splitLine: { lineStyle: { color: '#eef0f2' } }
+      },
+      series: [
+        {
+          name: '一键注册',
+          type: 'line',
+          smooth: true,
+          symbolSize: 8,
+          itemStyle: { color: '#0f766e' },
+          lineStyle: { width: 3 },
+          data: [100, 97.6, 97.2, 93.5],
+          label: { show: true, formatter: '{c}%', fontSize: 11, color: '#0f766e' }
+        },
+        {
+          name: '谷歌',
+          type: 'line',
+          smooth: true,
+          symbolSize: 8,
+          itemStyle: { color: '#2563eb' },
+          lineStyle: { width: 3 },
+          data: [100, 58.6, 54.9, 54.4],
+          label: { show: true, formatter: '{c}%', fontSize: 11, color: '#2563eb' }
+        },
+        {
+          name: '手机号',
+          type: 'line',
+          smooth: true,
+          symbolSize: 8,
+          itemStyle: { color: '#d97706' },
+          lineStyle: { width: 3 },
+          data: [100, 56.5, 49.7, 48.0],
+          label: { show: true, formatter: '{c}%', fontSize: 11, color: '#d97706' }
+        }
+      ]
+    });
+
+    const errorChart = echarts.init(document.getElementById('errorChart'));
+    errorChart.setOption({
+      animationDuration: 500,
+      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+      grid: { left: 160, right: 40, top: 20, bottom: 30, containLabel: false },
+      xAxis: {
+        type: 'value',
+        axisLabel: { color: '#6b7280' },
+        splitLine: { lineStyle: { color: '#eef0f2' } }
+      },
+      yAxis: {
+        type: 'category',
+        data: [
+          'step3 · 验证码失败',
+          'step2 · 人机验证失败',
+          'step2 · 参数/格式/区号',
+          'step2 · 短信频控合计'
+        ],
+        axisLabel: { color: '#374151', fontSize: 12 }
+      },
+      series: [{
+        type: 'bar',
+        data: [
+          { value: 1097, itemStyle: { color: '#be123c', borderRadius: [0, 4, 4, 0] } },
+          { value: 78, itemStyle: { color: '#94a3b8', borderRadius: [0, 4, 4, 0] } },
+          { value: 750, itemStyle: { color: '#d97706', borderRadius: [0, 4, 4, 0] } },
+          { value: 3860, itemStyle: { color: '#be123c', borderRadius: [0, 4, 4, 0] } }
+        ],
+        barMaxWidth: 28,
+        label: {
+          show: true,
+          position: 'right',
+          fontSize: 11,
+          color: '#374151',
+          formatter: p => p.value.toLocaleString()
+        }
+      }]
+    });
+
+    window.addEventListener('resize', () => {
+      funnelChart.resize();
+      errorChart.resize();
+    });
+  </script>
+</body>
+</html>
