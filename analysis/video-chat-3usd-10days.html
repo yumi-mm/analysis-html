@@ -261,7 +261,7 @@
 
     <section class="section">
       <div class="section-title">一、各充值档位日均订单数 <span class="tag">单位：单/天</span></div>
-      <div class="section-desc">对比上个月、上线前、上线后各档位日均订单；3 美金从 337.5 提升至 2,792.1，订单占比从 7.8% 升至 40.8%。</div>
+      <div class="section-desc">对比上线前、上线后各档位日均订单；3 美金从 337.5 提升至 2,792.1，订单占比从 7.8% 升至 40.8%。</div>
       <div id="ordersChart" class="chart"></div>
     </section>
 
@@ -283,12 +283,43 @@
 
     <section class="section">
       <div class="section-title">四、私信场景各档位变化 <span class="tag">source：6/7/8/9</span></div>
-      <div class="section-desc">服务端将视频聊与私信归为同一充值场景；私信来源上线前后各 10 天日均对比。</div>
+      <div class="section-desc">服务端将视频聊与私信归为同一充值场景；对比上个月（7/28～8/6）、上线前、上线后各 10 天日均。</div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>指标</th>
+            <th>上个月（7/28～8/6）</th>
+            <th>上线前（8/17～8/26）</th>
+            <th>上线后（8/28～9/6）</th>
+            <th>较上线前</th>
+            <th>较上个月</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>日均订单</td>
+            <td class="num">433.0 单/天</td>
+            <td class="num">413.4 单/天</td>
+            <td class="num">884.0 单/天</td>
+            <td class="change up">+113.8%</td>
+            <td class="change up">+104.2%</td>
+          </tr>
+          <tr>
+            <td>日均金额</td>
+            <td class="num">5,337 美元/天</td>
+            <td class="num">4,947 美元/天</td>
+            <td class="num">6,652 美元/天</td>
+            <td class="change mid">+34.5%</td>
+            <td class="change mid">+24.6%</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="border-top:1px solid var(--line); margin:16px 0 14px;"></div>
       <div class="private-charts">
         <div id="privateOrdersChart" class="private-chart"></div>
         <div id="privateAmountChart" class="private-chart"></div>
       </div>
-      <div class="note">3 美金日均订单 9.2 → 464.4；10 美金 311.8 → 309.6（−0.7%）。金额图 3 美金涨幅以 10 美金上线前金额为基数。</div>
+      <div class="note">日均订单/金额为各档位日均加总；图中可见 3 美金放量明显，10 美金仅小幅下降。</div>
     </section>
 
     <section class="section">
@@ -302,7 +333,6 @@
   <script>
     const tiers = ['1美金', '3美金', '10美金', '30美金', '100美金', '300美金', '其他'];
     // 其他含 1000 美金小量级
-    const lastMonthOrders = [79.8, 249.5, 3338.7, 624.2, 61.1, 1.3, 5.2];
     const beforeOrders = [136.6, 337.5, 3187.6, 590.6, 64.8, 1.1, 5.9];
     const afterOrders = [153.2, 2792.1, 3174.0, 638.5, 71.3, 1.4, 5.1];
     const beforeAmounts = [95.72, 938.24, 25350.87, 14381.33, 5206.87, 352.50, 280.43];
@@ -398,24 +428,10 @@
       },
       series: [
         {
-          name: '上个月(7/28～8/6)',
-          type: 'bar',
-          data: lastMonthOrders,
-          barMaxWidth: 22,
-          itemStyle: { color: '#cbd5e1', borderRadius: [4, 4, 0, 0] },
-          label: {
-            show: true,
-            position: 'top',
-            fontSize: 9,
-            color: '#64748b',
-            formatter: p => p.value > 0 ? Math.round(p.value) : ''
-          }
-        },
-        {
           name: '上线前',
           type: 'bar',
           data: beforeOrders,
-          barMaxWidth: 22,
+          barMaxWidth: 30,
           itemStyle: { color: '#94a3b8', borderRadius: [4, 4, 0, 0] },
           label: {
             show: true,
@@ -429,7 +445,7 @@
           name: '上线后',
           type: 'bar',
           data: afterOrders,
-          barMaxWidth: 22,
+          barMaxWidth: 30,
           itemStyle: { color: '#0f766e', borderRadius: [4, 4, 0, 0] },
           label: {
             show: true,
@@ -600,10 +616,10 @@
       legend: {
         top: 0,
         right: 0,
-        itemGap: 10,
-        textStyle: { color: '#4b5563', fontSize: 11 }
+        itemGap: 8,
+        textStyle: { color: '#4b5563', fontSize: 10 }
       },
-      grid: { left: 48, right: 12, top: 42, bottom: 46, containLabel: true },
+      grid: { left: 48, right: 12, top: 48, bottom: 46, containLabel: true },
       xAxis: {
         type: 'category',
         data: privateTiers,
@@ -618,62 +634,96 @@
       }
     };
 
-    function privateOption(title, unit, before, after, formatter, afterData) {
-      return {
-        ...privateBase,
-        title: {
-          text: title,
-          left: 0,
-          top: 0,
-          textStyle: { color: '#374151', fontSize: 13, fontWeight: 650 }
-        },
-        legend: { ...privateBase.legend, top: 0, right: 0 },
-        grid: { ...privateBase.grid, top: afterData ? 56 : 40 },
-        yAxis: {
-          ...privateBase.yAxis,
-          name: unit,
-          nameTextStyle: { color: '#6b7280', fontSize: 10 },
-          nameGap: 10
-        },
-        series: [
-          {
-            name: '上线前',
-            type: 'bar',
-            data: before,
-            barMaxWidth: 22,
-            itemStyle: { color: '#94a3b8', borderRadius: [3, 3, 0, 0] },
-            label: { show: true, position: 'top', fontSize: 9, color: '#64748b', formatter }
-          },
-          {
-            name: '上线后',
-            type: 'bar',
-            data: afterData || after,
-            barMaxWidth: 22,
-            itemStyle: { color: '#0f766e', borderRadius: [3, 3, 0, 0] },
-            label: afterData ? { show: true } : { show: true, position: 'top', fontSize: 9, color: '#0f766e', formatter }
-          }
-        ]
-      };
-    }
-
     const privateOrdersChart = echarts.init(document.getElementById('privateOrdersChart'));
-    privateOrdersChart.setOption(privateOption(
-      '日均订单数',
-      '单/天',
-      privateBeforeOrders,
-      privateAfterOrders,
-      p => p.value > 0 ? Math.round(p.value) : ''
-    ));
+    privateOrdersChart.setOption({
+      ...privateBase,
+      title: {
+        text: '日均订单数',
+        left: 0,
+        top: 0,
+        textStyle: { color: '#374151', fontSize: 13, fontWeight: 650 }
+      },
+      legend: { ...privateBase.legend, top: 0, right: 0 },
+      yAxis: {
+        ...privateBase.yAxis,
+        name: '单/天',
+        nameTextStyle: { color: '#6b7280', fontSize: 10 },
+        nameGap: 10
+      },
+      series: [
+        {
+          name: '上线前',
+          type: 'bar',
+          data: privateBeforeOrders,
+          barMaxWidth: 22,
+          itemStyle: { color: '#94a3b8', borderRadius: [3, 3, 0, 0] },
+          label: {
+            show: true,
+            position: 'top',
+            fontSize: 8,
+            color: '#64748b',
+            formatter: p => p.value > 0 ? Math.round(p.value) : ''
+          }
+        },
+        {
+          name: '上线后',
+          type: 'bar',
+          data: privateAfterOrders,
+          barMaxWidth: 22,
+          itemStyle: { color: '#0f766e', borderRadius: [3, 3, 0, 0] },
+          label: {
+            show: true,
+            position: 'top',
+            fontSize: 8,
+            color: '#0f766e',
+            formatter: p => p.value > 0 ? Math.round(p.value) : ''
+          }
+        }
+      ]
+    });
 
     const privateAmountChart = echarts.init(document.getElementById('privateAmountChart'));
-    privateAmountChart.setOption(privateOption(
-      '日均充值金额',
-      '美元/天',
-      privateBeforeAmounts,
-      privateAfterAmounts,
-      p => p.value > 0 ? Math.round(p.value) : '',
-      amountAfterBarData(privateBeforeAmounts, privateAfterAmounts, '#0f766e', 9)
-    ));
+    privateAmountChart.setOption({
+      ...privateBase,
+      title: {
+        text: '日均充值金额',
+        left: 0,
+        top: 0,
+        textStyle: { color: '#374151', fontSize: 13, fontWeight: 650 }
+      },
+      legend: { ...privateBase.legend, top: 0, right: 0 },
+      grid: { ...privateBase.grid, top: 60 },
+      yAxis: {
+        ...privateBase.yAxis,
+        name: '美元/天',
+        nameTextStyle: { color: '#6b7280', fontSize: 10 },
+        nameGap: 10
+      },
+      series: [
+        {
+          name: '上线前',
+          type: 'bar',
+          data: privateBeforeAmounts,
+          barMaxWidth: 22,
+          itemStyle: { color: '#94a3b8', borderRadius: [3, 3, 0, 0] },
+          label: {
+            show: true,
+            position: 'top',
+            fontSize: 8,
+            color: '#64748b',
+            formatter: p => p.value > 0 ? Math.round(p.value) : ''
+          }
+        },
+        {
+          name: '上线后',
+          type: 'bar',
+          data: amountAfterBarData(privateBeforeAmounts, privateAfterAmounts, '#0f766e', 8),
+          barMaxWidth: 22,
+          itemStyle: { color: '#0f766e', borderRadius: [3, 3, 0, 0] },
+          label: { show: true }
+        }
+      ]
+    });
 
     window.addEventListener('resize', () => {
       ordersChart.resize();
