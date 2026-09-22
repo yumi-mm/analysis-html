@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WebApp 一键登录 · 恢复密钥兜底方案</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --ink: #17324d;
+      --muted: #66788a;
+      --line: #8193a5;
+      --paper: #ffffff;
+      --lane: #f5f8fb;
+      --blue: #467bac;
+      --orange: #f3942f;
+      --green: #57a24b;
+      --red: #df585d;
+      --cyan: #277b78;
+      --navy: #173e65;
+    }
+    body {
+      margin: 0;
+      background: #e8eef4;
+      color: var(--ink);
+      font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+    }
+    .page {
+      width: 1400px;
+      min-height: 1760px;
+      margin: 0 auto;
+      padding: 38px 42px 42px;
+      background: var(--paper);
+    }
+    header { text-align: center; margin-bottom: 22px; }
+    h1 { margin: 0 0 7px; font-size: 30px; letter-spacing: 1px; }
+    header p { margin: 0; color: var(--muted); font-size: 15px; }
+    .lane {
+      margin-top: 14px;
+      padding: 20px 24px 22px;
+      border: 1.5px dashed var(--line);
+      border-radius: 12px;
+      background: var(--lane);
+    }
+    .lane-title {
+      margin: 0 0 24px;
+      font-size: 19px;
+      font-weight: 700;
+    }
+    .flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 92px;
+    }
+    .node {
+      width: 188px;
+      min-height: 72px;
+      padding: 14px 20px;
+      border-radius: 8px;
+      background: var(--blue);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 15px;
+      line-height: 1.5;
+      font-weight: 600;
+    }
+    .node.start {
+      width: 128px;
+      background: var(--cyan);
+      clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+      border-radius: 0;
+      padding-left: 28px;
+      padding-right: 28px;
+    }
+    .node.decision {
+      width: 210px;
+      min-height: 92px;
+      background: var(--orange);
+      clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+      border-radius: 0;
+      padding-left: 42px;
+      padding-right: 42px;
+    }
+    .node.success { background: var(--green); }
+    .node.danger { background: var(--red); }
+    .arrow {
+      width: 68px;
+      color: #627487;
+      text-align: center;
+      font-size: 27px;
+      flex: 0 0 auto;
+    }
+    .arrow small {
+      display: block;
+      margin-bottom: -8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .down {
+      height: 52px;
+      color: #627487;
+      text-align: center;
+      font-size: 28px;
+      line-height: 48px;
+    }
+    .down small { margin-right: 8px; font-size: 13px; vertical-align: 3px; }
+    .mapping {
+      margin: 18px 12px 0;
+      padding: 13px 18px;
+      border-radius: 6px;
+      background: #e7edf3;
+      color: #3e5368;
+      text-align: center;
+      font-size: 14px;
+    }
+    .login-branch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .recovery-grid {
+      display: grid;
+      grid-template-columns: 42% 58%;
+      gap: 24px;
+      align-items: start;
+    }
+    .branch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .two-results {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+    }
+    .result {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+    }
+    .result-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .final {
+      width: 690px;
+      margin: 20px auto 0;
+      padding: 14px 24px;
+      border-radius: 7px;
+      background: var(--green);
+      color: #fff;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .points { padding-top: 12px; }
+    .point {
+      display: grid;
+      grid-template-columns: 32px 145px 1fr;
+      gap: 12px;
+      padding: 10px 16px;
+      border-bottom: 1px solid #dce4eb;
+      align-items: start;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+    .point:last-child { border-bottom: 0; }
+    .point-num {
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: #fff;
+      text-align: center;
+      line-height: 25px;
+      font-weight: 700;
+    }
+    .point-name { font-weight: 700; }
+    .point-detail { color: #4e6173; }
+    .conclusion {
+      margin-top: 22px;
+      padding: 18px 24px;
+      border-radius: 8px;
+      background: var(--navy);
+      color: #fff;
+      text-align: center;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: .5px;
+    }
+    .warning {
+      margin: 18px auto 0;
+      max-width: 980px;
+      padding: 12px 18px;
+      border-left: 5px solid var(--orange);
+      background: #fff3df;
+      color: #6d4b1c;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    @page { size: A3 landscape; margin: 8mm; }
+    @media print {
+      body { background: #fff; }
+      .page { width: 100%; min-height: auto; padding: 0; }
+      .lane { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <h1>WebApp 一键登录 · 恢复密钥兜底方案</h1>
+      <p>目标：设备码变化后，用户仍能找回原账号，避免误注册造成账号和资产丢失</p>
+    </header>
+
+    <section class="lane">
+      <h2 class="lane-title">一、一键注册流程（首次注册时生成恢复密钥）</h2>
+      <div class="flow">
+        <div class="node start">用户<br>点击注册</div>
+        <div class="arrow">→</div>
+        <div class="node">服务端创建账号<br>生成 account_id</div>
+        <div class="arrow">→</div>
+        <div class="node">生成高强度随机<br>恢复密钥</div>
+        <div class="arrow">→</div>
+        <div class="node decision">弹窗展示密钥<br>复制或下载保存</div>
+        <div class="arrow">→</div>
+        <div class="node success">用户确认<br>已安全保存</div>
+      </div>
+      <div class="mapping">
+        服务端保存：account_id + SHA-256（恢复密钥）　｜　不保存密钥明文　｜　恢复密钥不根据设备码生成
+      </div>
+    </section>
+
+    <section class="lane">
+      <h2 class="lane-title">二、一键登录流程（检测设备码是否变化）</h2>
+      <div class="login-branch">
+        <div class="flow">
+          <div class="node start">用户<br>点击登录</div>
+          <div class="arrow">→</div>
+          <div class="node">服务端根据<br>设备码查询账号</div>
+          <div class="arrow">→</div>
+          <div class="node decision">设备码<br>是否匹配？</div>
+          <div class="arrow"><small>是</small>→</div>
+          <div class="node success">匹配成功<br>直接登录原账号</div>
+        </div>
+        <div class="down"><small>否</small>↓</div>
+        <div class="node danger" style="width:280px">不自动注册新账号<br>引导用户找回原账号</div>
+      </div>
+    </section>
+
+    <section class="lane">
+      <h2 class="lane-title">三、账号找回流程（恢复密钥验证）</h2>
+      <div class="recovery-grid">
+        <div class="branch">
+          <div class="flow">
+            <div class="node">用户输入<br>恢复密钥</div>
+            <div class="arrow">→</div>
+            <div class="node decision">密钥 Hash<br>是否匹配？</div>
+          </div>
+          <div class="down"><small>否</small>↓</div>
+          <div class="node danger" style="width:280px">提示恢复信息无效<br>限制重试并进行风控</div>
+        </div>
+
+        <div class="branch">
+          <div class="node success" style="width:270px">匹配成功，定位原 account_id</div>
+          <div class="down">↓</div>
+          <div class="node decision" style="width:250px">是否为充值或<br>高价值账号？</div>
+          <div class="down">↓</div>
+          <div class="two-results">
+            <div class="result">
+              <div class="result-label">否：普通匿名账号</div>
+              <div class="node success" style="width:230px">绑定新设备<br>签发登录令牌</div>
+            </div>
+            <div class="result">
+              <div class="result-label">是：充值或高价值账号</div>
+              <div class="node decision" style="width:250px">支付订单、原设备或<br>绑定账号二次验证</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="final">验证完成 → 登录原账号 → 轮换恢复密钥 → 保留设备操作审计</div>
+      <div class="warning">
+        <strong>安全边界：</strong>恢复密钥是“持有型凭证”。系统可以确认密钥对应哪个账号，但仅凭密钥无法判断输入者是不是原用户，因此付费和高价值账号必须增加二次验证。
+      </div>
+    </section>
+
+    <section class="lane">
+      <h2 class="lane-title">四、关键设计要点（周会汇报重点）</h2>
+      <div class="points">
+        <div class="point">
+          <div class="point-num">1</div><div class="point-name">高强度随机生成</div>
+          <div class="point-detail">使用 Crypto.randomBytes 等密码学安全随机数，至少 128 bit；不使用设备码、用户ID或时间生成。</div>
+        </div>
+        <div class="point">
+          <div class="point-num">2</div><div class="point-name">安全存储</div>
+          <div class="point-detail">服务端只保存恢复密钥 Hash；明文仅向用户展示一次，日志、埋点和客服后台均不得记录。</div>
+        </div>
+        <div class="point">
+          <div class="point-num">3</div><div class="point-name">明确账号归属</div>
+          <div class="point-detail">通过 Hash 查询找到绑定的 account_id；密钥证明的是“持有凭证”，而不是自然人的真实身份。</div>
+        </div>
+        <div class="point">
+          <div class="point-num">4</div><div class="point-name">分级验证</div>
+          <div class="point-detail">普通匿名账号可凭密钥恢复；充值、高余额账号增加支付订单、原设备或第三方绑定验证。</div>
+        </div>
+        <div class="point">
+          <div class="point-num">5</div><div class="point-name">新设备登录</div>
+          <div class="point-detail">恢复后为新设备签发 Refresh Token；设备码只用于设备关联和风险判断，不作为账号所有权证明。</div>
+        </div>
+        <div class="point">
+          <div class="point-num">6</div><div class="point-name">风险控制</div>
+          <div class="point-detail">接口限流、统一错误提示、异常地区拦截；找回成功后轮换密钥，高风险资产操作设置冷静期。</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="conclusion">核心结论：设备码只作辅助识别，恢复密钥作为匿名凭证，充值账号增加二次验证</div>
+  </main>
+</body>
+</html>
