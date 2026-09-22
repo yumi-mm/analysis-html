@@ -599,33 +599,6 @@
     <section class="section">
       <div class="section-title">四、优化方案 <span class="tag">素材</span></div>
       <div class="optimize-grid">
-        <div class="optimize-block google">
-          <h3>谷歌优化</h3>
-          <div class="hint">对应入口→校验损耗（约 21.7%），聚焦登录 400 / 授权中断。</div>
-
-          <div class="optimize-sub">1. 现状</div>
-          <div class="media-slots">
-            <div class="media-slot">
-              <video controls preload="metadata" src="谷歌400问题视频.mp4"></video>
-              <div class="media-caption">现状视频：谷歌登录 400 问题复现</div>
-            </div>
-          </div>
-
-          <div class="optimize-sub">2. 优化建议</div>
-          <div class="optimize-suggest">
-            <ul class="opt-list">
-              <li>定位 400 根因：客户端回调、服务端校验、浏览器拦截 / 弹窗关闭。</li>
-              <li>优先修复高发错误后再观察仅注册入口→校验留存（目标高于当前 81.3%）。</li>
-            </ul>
-            <div class="media-slots suggest-media">
-              <div class="media-slot suggest-shot">
-                <img src="B9F8DCE44EB5A67E3359035580D51CFC.jpg" alt="谷歌登录 400 错误页截图">
-                <div class="media-caption">现状截图：accounts.google.com 返回 400 That’s an error</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div class="optimize-block phone">
           <h3>手机号优化</h3>
           <div class="hint">现状为手机号、验证码分两页；误退回上一页会触发 1 分钟频控，体验差且增加短信成本。</div>
@@ -648,6 +621,33 @@
               <div class="media-slot suggest-shot">
                 <img src="_1608628514__87f421804df81706bd1b95fcd0fe77ec_1565483137_Screenshot_2026-09-09-16-49-37-527_com.android_0_wifi_0.jpg" alt="手机号与验证码同页示意">
                 <div class="media-caption">优化示意：手机号 + 验证码同页（含倒计时）</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="optimize-block google">
+          <h3>谷歌优化</h3>
+          <div class="hint">对应入口→校验损耗（约 21.7%），聚焦登录 400 / 授权中断。</div>
+
+          <div class="optimize-sub">1. 现状</div>
+          <div class="media-slots">
+            <div class="media-slot">
+              <video controls preload="metadata" src="谷歌400问题视频.mp4"></video>
+              <div class="media-caption">现状视频：谷歌登录 400 问题复现</div>
+            </div>
+          </div>
+
+          <div class="optimize-sub">2. 优化建议</div>
+          <div class="optimize-suggest">
+            <ul class="opt-list">
+              <li>定位 400 根因：客户端回调、服务端校验、浏览器拦截 / 弹窗关闭。</li>
+              <li>优先修复高发错误后再观察仅注册入口→校验留存（目标高于当前 81.3%）。</li>
+            </ul>
+            <div class="media-slots suggest-media">
+              <div class="media-slot suggest-shot">
+                <img src="B9F8DCE44EB5A67E3359035580D51CFC.jpg" alt="谷歌登录 400 错误页截图">
+                <div class="media-caption">现状截图：accounts.google.com 返回 400 That’s an error</div>
               </div>
             </div>
           </div>
